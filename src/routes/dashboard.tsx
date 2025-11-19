@@ -3,9 +3,12 @@ import { Button } from '@/components/ui/button';
 import { useUser, useClerk } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { useState, useEffect, Fragment, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Loader2, User, Heart, Bell } from 'lucide-react';
 import { toast } from 'sonner';
+import { AccountNotFound } from '@/components/dashboard/AccountNotFound';
+import { DashboardIdle } from '@/components/dashboard/DashboardIdle';
+import { DashboardSearching } from '@/components/dashboard/DashboardSearching';
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
@@ -59,21 +62,10 @@ function Dashboard() {
   // If user doesn't exist in Convex, show error (user was deleted or webhook hasn't fired yet)
   if (queueStatus && !queueStatus.userExists) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4 px-4">
-        <h1 className="text-2xl font-bold">Account Not Found</h1>
-        <p className="text-muted-foreground text-center max-w-md">
-          Your account is being set up. Please wait a moment and refresh the page.
-          If this persists, try signing out and signing back in.
-        </p>
-        <div className="flex gap-4">
-          <Button onClick={() => window.location.reload()}>
-            Refresh Page
-          </Button>
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </div>
-      </div>
+      <AccountNotFound 
+        onRefresh={() => window.location.reload()} 
+        onSignOut={handleSignOut} 
+      />
     );
   }
 
@@ -143,6 +135,10 @@ function Dashboard() {
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <Loader2 className="h-8 w-8 animate-spin" />
         <p className="text-muted-foreground">Loading...</p>
+        {/* Fix: Add Sign Out button here to prevent getting stuck if auth is desynced */}
+        <Button variant="ghost" size="sm" onClick={handleSignOut} className="mt-4">
+          Sign Out
+        </Button>
       </div>
     );
   }
@@ -151,19 +147,19 @@ function Dashboard() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="absolute top-4 right-4 flex gap-2">
         <Link to="/profile">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2 shadow-3d-sm hover-lift">
             <User className="h-4 w-4" />
             Profile
           </Button>
         </Link>
         <Link to="/matches">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2 shadow-3d-sm hover-lift">
             <Heart className="h-4 w-4" />
             Matches
           </Button>
         </Link>
         <Link to="/notifications">
-          <Button variant="outline" size="sm" className="gap-2 relative">
+          <Button variant="outline" size="sm" className="gap-2 relative shadow-3d-sm hover-lift">
             <Bell className="h-4 w-4" />
             Notifications
             {pendingRequests && pendingRequests.length > 0 && (
@@ -173,60 +169,23 @@ function Dashboard() {
             )}
           </Button>
         </Link>
-        <Button variant="ghost" onClick={handleSignOut} className="border-none shadow-none">
+        <Button variant="ghost" onClick={handleSignOut} className="border-none shadow-none hover:bg-transparent hover:text-destructive">
           Sign out
         </Button>
       </div>
 
-      <div className="text-center space-y-12">
+      <div className="w-full max-w-4xl">
         {!queueStatus.inQueue && !queueStatus.matched && (
-          <Fragment key="idle">
-            <div key="idle-text" className="space-y-4">
-              <h1 className="text-5xl font-bold">Ready, {user?.username || user?.firstName}?</h1>
-              <p className="text-lg text-muted-foreground">
-                Click below to find someone new
-              </p>
-            </div>
-
-            <Button
-              key="idle-button"
-              size="lg"
-              className="px-16 py-8 text-2xl"
-              onClick={handleFindMatch}
-              disabled={isJoining}
-            >
-              {isJoining ? (
-                <>
-                  <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-                  Joining...
-                </>
-              ) : (
-                'Find Match'
-              )}
-            </Button>
-          </Fragment>
+          <DashboardIdle 
+            username={user?.username} 
+            firstName={user?.firstName} 
+            isJoining={isJoining} 
+            onFindMatch={handleFindMatch} 
+          />
         )}
 
         {queueStatus.inQueue && !queueStatus.matched && (
-          <Fragment key="searching">
-            <div key="searching-text" className="space-y-4">
-              <h1 className="text-5xl font-bold">Searching...</h1>
-              <p className="text-lg text-muted-foreground">
-                Looking for someone to chat with
-              </p>
-            </div>
-
-            <div key="searching-actions" className="flex flex-col items-center gap-6">
-              <Loader2 className="h-16 w-16 animate-spin" />
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleCancelSearch}
-              >
-                Cancel
-              </Button>
-            </div>
-          </Fragment>
+          <DashboardSearching onCancel={handleCancelSearch} />
         )}
       </div>
     </div>

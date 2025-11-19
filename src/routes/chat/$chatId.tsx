@@ -1,13 +1,18 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
 import { useState, useEffect, useRef } from 'react';
-import { Send, Clock, LogOut, Heart, X, Loader2, User } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ChatHeader } from '@/components/chat/ChatHeader';
+import { ChatMessages } from '@/components/chat/ChatMessages';
+import { ChatInput } from '@/components/chat/ChatInput';
+import { DecisionOverlay } from '@/components/chat/DecisionOverlay';
+import { ChatEndedOverlay } from '@/components/chat/ChatEndedOverlay';
+import { ProfileCard } from '@/components/chat/ProfileCard';
 
 export const Route = createFileRoute('/chat/$chatId')({
   component: ChatPage,
@@ -20,7 +25,6 @@ function ChatPage() {
   const [newMessage, setNewMessage] = useState('');
   const [showDecisionUI, setShowDecisionUI] = useState(false);
   const [myDecision, setMyDecision] = useState<boolean | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const timerExpiredRef = useRef(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
@@ -104,13 +108,6 @@ function ChatPage() {
       setShowDecisionUI(true);
     }
   }, [chatData?.chatSession?.status, showDecisionUI]);
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [chatData?.messages]);
 
   // Calculate time remaining
   const getTimeRemaining = () => {
@@ -269,194 +266,36 @@ function ChatPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="border-b-2 border-black px-6 py-4 flex justify-between items-center bg-white">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold">
-            {chatSession.phase === 'extended' ? 'Matched Chat' : 'Speed Dating'}
-          </h1>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLeaveChat}
-            className="gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Leave
-          </Button>
-        </div>
-        {chatSession.phase === 'speed_dating' && (
-          <div className="flex items-center gap-4">
-            <Button
-              variant={skipCount > 0 ? "default" : "outline"}
-              size="sm"
-              onClick={handleSkip}
-              className={`gap-2 font-bold transition-all ${
-                skipCount === 1
-                  ? 'bg-black text-white animate-pulse'
-                  : skipCount === 2
-                  ? 'bg-green-600 text-white'
-                  : ''
-              }`}
-            >
-              Skip to Profiles ({skipCount}/2)
-            </Button>
-            <div className="flex items-center gap-2 text-lg font-mono">
-              <Clock className="h-5 w-5" />
-              <span className="font-bold">{timeRemaining}</span>
-            </div>
-          </div>
-        )}
-      </div>
+      <ChatHeader
+        phase={chatSession.phase}
+        skipCount={skipCount}
+        timeRemaining={timeRemaining}
+        onLeave={handleLeaveChat}
+        onSkip={handleSkip}
+      />
 
-      {/* Chat Ended Overlay */}
       {chatEnded && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white border-4 border-black shadow-3d-lg p-8 max-w-md w-full mx-4">
-            <div className="text-center space-y-6">
-              <div className="text-6xl">👋</div>
-              <h2 className="text-3xl font-bold">Chat Has Ended</h2>
-              <p className="text-lg text-muted-foreground">
-                {myDecision === false
-                  ? "You chose not to continue this chat."
-                  : myDecision === true
-                  ? "The other person chose not to continue."
-                  : "This chat has ended."}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                All messages have been deleted for privacy.
-              </p>
-              <Button
-                size="lg"
-                onClick={() => navigate({ to: '/dashboard' })}
-                className="w-full py-6 text-lg"
-              >
-                Return to Dashboard
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ChatEndedOverlay
+          myDecision={myDecision}
+          onReturnToDashboard={() => navigate({ to: '/dashboard' })}
+        />
       )}
 
-      {/* Decision UI Overlay */}
       {showDecisionUI && !chatEnded && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white border-4 border-black shadow-3d-lg p-8 max-w-md w-full mx-4">
-            <h2 className="text-3xl font-bold text-center mb-6">
-              Time's Up!
-            </h2>
-            <p className="text-center text-lg mb-8">
-              Do you want to continue chatting and see this person's profile?
-            </p>
-
-            {myDecision === null ? (
-              <div className="flex gap-4">
-                <Button
-                  onClick={() => handleDecision(false)}
-                  variant="outline"
-                  className="flex-1 gap-2 py-6 text-lg"
-                >
-                  <X className="h-6 w-6" />
-                  No Thanks
-                </Button>
-                <Button
-                  onClick={() => handleDecision(true)}
-                  className="flex-1 gap-2 py-6 text-lg bg-black text-white hover:bg-black/90"
-                >
-                  <Heart className="h-6 w-6" />
-                  Yes, Continue
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-xl font-bold mb-2">
-                  {myDecision ? 'You said Yes!' : 'You said No'}
-                </p>
-                <p className="text-muted-foreground">
-                  Waiting for the other person to decide...
-                </p>
-                <div className="mt-6">
-                  <div className="animate-pulse text-4xl">⏳</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <DecisionOverlay
+          myDecision={myDecision}
+          onDecision={handleDecision}
+        />
       )}
 
-      {/* Profile Card (Extended Phase Only) */}
       {chatSession.phase === 'extended' && otherUser && (
-        <div className="border-b-2 border-black px-6 py-4 bg-white">
-          <div className="max-w-2xl mx-auto">
-            <div className="flex items-center gap-4 p-4 border-2 border-black shadow-3d">
-              <div className="w-16 h-16 rounded-full border-2 border-black overflow-hidden bg-gray-100 flex-shrink-0">
-                {otherUser.photos && otherUser.photos.length > 0 ? (
-                  <img
-                    src={otherUser.photos[0]}
-                    alt={otherUser.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <User className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold">{otherUser.name || 'Anonymous'}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {otherUser.age ? `${otherUser.age} years old` : 'Age not set'}
-                  {otherUser.age && otherUser.gender && ' • '}
-                  {otherUser.gender && `${otherUser.gender.charAt(0).toUpperCase() + otherUser.gender.slice(1)}`}
-                </p>
-                {otherUser.bio ? (
-                  <p className="mt-2 text-sm">{otherUser.bio}</p>
-                ) : (
-                  <p className="mt-2 text-sm text-muted-foreground italic">
-                    No bio yet
-                  </p>
-                )}
-              </div>
-              <div className="text-4xl">❤️</div>
-            </div>
-          </div>
-        </div>
+        <ProfileCard otherUser={otherUser} />
       )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-8 space-y-4 bg-white">
-        {messages.length === 0 && (
-          <div className="text-center text-muted-foreground">
-            <p>No messages yet. Say hi!</p>
-          </div>
-        )}
-        {messages.map((message) => {
-          const isMyMessage = message.senderId === currentUserId;
-          return (
-            <div
-              key={message._id}
-              className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[70%] px-4 py-3 rounded-lg shadow-3d-sm border-2 border-black ${
-                  isMyMessage
-                    ? 'bg-black text-white'
-                    : 'bg-white text-black'
-                }`}
-              >
-                <p className="break-words">{message.content}</p>
-                <p className="text-xs mt-1 opacity-70">
-                  {new Date(message.createdAt).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-        <div ref={messagesEndRef} />
-      </div>
+      <ChatMessages
+        messages={messages}
+        currentUserId={currentUserId}
+      />
 
       {/* Typing Indicator */}
       {otherUserIsTyping && !chatEnded && (
@@ -472,29 +311,12 @@ function ChatPage() {
         </div>
       )}
 
-      {/* Input */}
-      <form
-        onSubmit={handleSendMessage}
-        className="border-t-2 border-black px-6 py-4 bg-white"
-      >
-        <div className="flex gap-3">
-          <Input
-            type="text"
-            placeholder={chatEnded ? "Chat has ended" : "Type a message..."}
-            value={newMessage}
-            onChange={(e) => handleTypingChange(e.target.value)}
-            className="flex-1"
-            disabled={chatEnded}
-          />
-          <Button
-            type="submit"
-            disabled={!newMessage.trim() || chatEnded}
-            className="px-6"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
-        </div>
-      </form>
+      <ChatInput
+        newMessage={newMessage}
+        chatEnded={chatEnded}
+        onTypingChange={handleTypingChange}
+        onSendMessage={handleSendMessage}
+      />
     </div>
   );
 }

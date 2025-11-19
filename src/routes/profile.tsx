@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { useState, useRef, useEffect } from 'react';
-import { Loader2, Upload, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ProfilePhotoSection } from '@/components/profile/ProfilePhotoSection';
+import { ProfileFormFields } from '@/components/profile/ProfileFormFields';
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -27,7 +28,6 @@ function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize form when profile loads
   useEffect(() => {
@@ -139,139 +139,22 @@ function ProfilePage() {
         </div>
 
         <div className="space-y-8">
-          {/* Profile Photo */}
-          <div className="space-y-4">
-            <label className="text-lg font-bold">Profile Photo</label>
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                <div className="w-32 h-32 rounded-full border-4 border-black overflow-hidden bg-gray-100 flex items-center justify-center">
-                  {previewUrl ? (
-                    <img
-                      src={previewUrl}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <User className="h-16 w-16 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
-              <div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="gap-2"
-                  disabled={isUploading}
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4" />
-                      Upload Photo
-                    </>
-                  )}
-                </Button>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Max 5MB. JPG, PNG, or GIF.
-                </p>
-              </div>
-            </div>
-          </div>
+          <ProfilePhotoSection
+            previewUrl={previewUrl}
+            isUploading={isUploading}
+            onFileSelect={handleFileSelect}
+          />
 
-          {/* Age */}
-          <div className="space-y-2">
-            <label className="text-lg font-bold">Age *</label>
-            <Input
-              type="number"
-              placeholder="Enter your age"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              min="18"
-              max="100"
-            />
-            {age && parseInt(age) < 18 && (
-              <p className="text-sm text-destructive">
-                You must be at least 18 years old
-              </p>
-            )}
-          </div>
-
-          {/* Gender */}
-          <div className="space-y-2">
-            <label className="text-lg font-bold">I am *</label>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: 'male', label: 'Male' },
-                { value: 'female', label: 'Female' },
-                { value: 'other', label: 'Other' },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setGender(option.value)}
-                  className={`py-4 px-6 border-2 border-black font-bold transition-all ${
-                    gender === option.value
-                      ? 'bg-black text-white'
-                      : 'bg-white text-black hover:bg-gray-50'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Gender Preference */}
-          <div className="space-y-2">
-            <label className="text-lg font-bold">Interested in *</label>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: 'male', label: 'Men' },
-                { value: 'female', label: 'Women' },
-                { value: 'both', label: 'Everyone' },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setGenderPreference(option.value)}
-                  className={`py-4 px-6 border-2 border-black font-bold transition-all ${
-                    genderPreference === option.value
-                      ? 'bg-black text-white'
-                      : 'bg-white text-black hover:bg-gray-50'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Bio */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <label className="text-lg font-bold">About Me</label>
-              <span className="text-sm text-muted-foreground">
-                {bio.length}/500
-              </span>
-            </div>
-            <textarea
-              placeholder="Tell us about yourself..."
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              maxLength={500}
-              rows={6}
-              className="w-full px-4 py-3 border-2 border-black focus:outline-none focus:ring-4 focus:ring-black/20 font-mono resize-none"
-            />
-          </div>
+          <ProfileFormFields
+            age={age}
+            setAge={setAge}
+            gender={gender}
+            setGender={setGender}
+            genderPreference={genderPreference}
+            setGenderPreference={setGenderPreference}
+            bio={bio}
+            setBio={setBio}
+          />
 
           {/* Actions */}
           <div className="flex gap-4 pt-4">
