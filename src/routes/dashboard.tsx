@@ -59,16 +59,6 @@ function Dashboard() {
     return null;
   }
 
-  // If user doesn't exist in Convex, show error (user was deleted or webhook hasn't fired yet)
-  if (queueStatus && !queueStatus.userExists) {
-    return (
-      <AccountNotFound 
-        onRefresh={() => window.location.reload()} 
-        onSignOut={handleSignOut} 
-      />
-    );
-  }
-
   // Automatically redirect when matched (reactive!)
   useEffect(() => {
     if (queueStatus?.matched && queueStatus.chatSessionId) {
@@ -130,16 +120,13 @@ function Dashboard() {
     }
   };
 
-  if (!isLoaded || queueStatus === undefined) {
+  // If user doesn't exist in Convex, show error (user was deleted or webhook hasn't fired yet)
+  if (queueStatus && !queueStatus.userExists) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="text-muted-foreground">Loading...</p>
-        {/* Fix: Add Sign Out button here to prevent getting stuck if auth is desynced */}
-        <Button variant="ghost" size="sm" onClick={handleSignOut} className="mt-4">
-          Sign Out
-        </Button>
-      </div>
+      <AccountNotFound 
+        onRefresh={() => window.location.reload()} 
+        onSignOut={handleSignOut} 
+      />
     );
   }
 
@@ -175,7 +162,8 @@ function Dashboard() {
       </div>
 
       <div className="w-full max-w-4xl">
-        {!queueStatus.inQueue && !queueStatus.matched && (
+        {/* Default to Idle if undefined or if explicitly not in queue/matched */}
+        {(!queueStatus || (!queueStatus.inQueue && !queueStatus.matched)) && (
           <DashboardIdle 
             username={user?.username} 
             firstName={user?.firstName} 
@@ -184,7 +172,7 @@ function Dashboard() {
           />
         )}
 
-        {queueStatus.inQueue && !queueStatus.matched && (
+        {queueStatus?.inQueue && !queueStatus.matched && (
           <DashboardSearching onCancel={handleCancelSearch} />
         )}
       </div>

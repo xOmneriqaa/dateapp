@@ -67,18 +67,6 @@ function MatchesPage() {
     return null;
   }
 
-  // Loading state
-  if (!isLoaded || matches === undefined) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <p className="text-muted-foreground">Loading matches...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -96,7 +84,9 @@ function MatchesPage() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
-        {matches.length === 0 ? (
+        {matches === undefined ? (
+          null
+        ) : matches.length === 0 ? (
           <div className="text-center py-16">
             <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-2xl font-bold mb-2">No matches yet</h2>
