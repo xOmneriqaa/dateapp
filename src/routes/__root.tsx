@@ -101,6 +101,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string}
       signInFallbackRedirectUrl="/dashboard"
       signUpFallbackRedirectUrl="/dashboard"
+      afterSignOutUrl="/"
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <QueryClientProvider client={queryClient}>

@@ -46,8 +46,11 @@ function Dashboard() {
       if (queueStatus?.inQueue) {
         await handleCancelSearch();
       }
-      // Sign out with explicit redirect - this clears the Clerk session
-      await signOut({ redirectUrl: window.location.origin + '/login' });
+      // Sign out WITHOUT redirectUrl - this forces complete session clearing
+      // Navigate manually after sign-out completes to ensure clean state
+      await signOut();
+      // After sign-out completes, navigate to home page
+      navigate({ to: '/' });
     } catch (error) {
       console.error('Error signing out:', error);
       toast.error('Failed to sign out. Please try again.');
