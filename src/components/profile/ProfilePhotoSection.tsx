@@ -12,11 +12,11 @@ export function ProfilePhotoSection({ previewUrl, isUploading, onFileSelect }: P
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="space-y-4">
-      <label className="text-xl font-semibold text-foreground">Profile Photo</label>
-      <div className="flex items-center gap-8">
+    <div className="space-y-4 text-center md:text-left">
+      <label className="text-xl font-semibold text-foreground block">Profile Photo</label>
+      <div className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-8">
         <div className="relative group">
-          <div className="w-36 h-36 rounded-full border-4 border-border overflow-hidden bg-muted flex items-center justify-center shadow-soft transition-smooth group-hover:shadow-soft-lg">
+          <div className="w-36 h-36 rounded-full border-4 border-border overflow-hidden bg-muted flex items-center justify-center shadow-soft transition-smooth group-hover:shadow-soft-lg mx-auto md:mx-0">
             {previewUrl ? (
               <img
                 src={previewUrl}
@@ -38,7 +38,7 @@ export function ProfilePhotoSection({ previewUrl, isUploading, onFileSelect }: P
             </div>
           )}
         </div>
-        <div className="space-y-3">
+        <div className="space-y-3 max-w-sm w-full">
           <input
             ref={fileInputRef}
             type="file"

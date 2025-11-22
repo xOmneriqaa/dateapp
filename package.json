@@ -11,6 +11,7 @@
   "dependencies": {
     "@clerk/backend": "^2.19.0",
     "@clerk/tanstack-react-start": "^0.26.4",
+    "@clerk/themes": "^2.4.39",
     "@convex-dev/react-query": "^0.0.0-alpha.11",
     "@radix-ui/react-slot": "^1.2.3",
     "@tanstack/react-query": "^5.90.5",

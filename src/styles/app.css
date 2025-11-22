@@ -198,19 +198,6 @@
     }
   }
 
-  /* ASCII art styling */
-  .ascii-art {
-    font-family: 'Courier New', monospace;
-    line-height: 1.25;
-    color: hsl(0 0% 96%);
-    text-shadow:
-      0 0 12px hsl(0 0% 100% / 0.25),
-      0 0 32px hsl(260 70% 70% / 0.25);
-    user-select: none;
-    white-space: pre;
-    letter-spacing: 0.04em;
-  }
-
   /* Backwards compatibility - keep existing 3D shadows */
   .shadow-3d {
     box-shadow:

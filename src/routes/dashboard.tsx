@@ -4,7 +4,7 @@ import { useUser, useClerk } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, User, Heart, Bell } from 'lucide-react';
+import { User, Heart, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { AccountNotFound } from '@/components/dashboard/AccountNotFound';
 import { DashboardIdle } from '@/components/dashboard/DashboardIdle';
@@ -26,6 +26,7 @@ function Dashboard() {
   const leaveQueue = useMutation(api.queue.leave);
   const pendingRequests = useQuery(api.chatRequests.listPending);
   const matches = useQuery(api.matches.list);
+  const isLoadingState = !isLoaded;
 
   // Track previous matches state to detect when a pending request becomes active
   const prevMatchesRef = useRef(matches);
@@ -97,6 +98,24 @@ function Dashboard() {
 
     prevMatchesRef.current = matches;
   }, [matches, navigate]);
+
+  if (isLoadingState) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center space-y-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            Preparing
+          </p>
+          <h2 className="text-2xl font-semibold">Loading your dashboard…</h2>
+          <div className="flex justify-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '0ms' }}></span>
+            <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '150ms' }}></span>
+            <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '300ms' }}></span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleFindMatch = async () => {
     setIsJoining(true);

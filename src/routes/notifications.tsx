@@ -3,10 +3,9 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { User, ArrowLeft, Check, X } from 'lucide-react';
+import { User, ArrowLeft, Check, X, BellRing, MessageSquareText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Id } from '../../convex/_generated/dataModel';
-import { BellIcon, ChatBubbles } from '@/components/ui/ascii-art';
 
 export const Route = createFileRoute('/notifications')({
   component: NotificationsPage,
@@ -78,8 +77,10 @@ function NotificationsPage() {
       <div className="max-w-5xl mx-auto px-6 py-12">
         {requests.length === 0 ? (
           <div className="text-center py-16 fade-in">
-            <div className="mb-8">
-              <BellIcon size="lg" />
+            <div className="mb-8 flex justify-center">
+              <span className="h-20 w-20 rounded-full border border-border flex items-center justify-center">
+                <BellRing className="h-10 w-10" />
+              </span>
             </div>
             <h2 className="text-4xl font-bold mb-4">All caught up</h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-md mx-auto">
@@ -93,9 +94,10 @@ function NotificationsPage() {
           </div>
         ) : (
           <div>
-            {/* Header with ASCII art */}
             <div className="mb-12 text-center fade-in">
-              <ChatBubbles size="md" className="mb-6" />
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-border mb-6">
+                <MessageSquareText className="h-8 w-8" />
+              </div>
               <h2 className="text-2xl font-bold mb-2">
                 {requests.length} {requests.length === 1 ? 'person wants' : 'people want'} to chat again
               </h2>

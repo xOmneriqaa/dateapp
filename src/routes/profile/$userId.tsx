@@ -3,9 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { Id } from '../../../convex/_generated/dataModel';
-import { ArrowLeft } from 'lucide-react';
-import { ProfileSilhouette } from '@/components/ui/ascii-art';
+import { ArrowLeft, UserRound } from 'lucide-react';
 
 export const Route = createFileRoute('/profile/$userId')({
   component: ProfileViewPage,
@@ -44,7 +42,9 @@ function ProfileViewPage() {
       <div className="max-w-4xl mx-auto px-6 py-16">
         <div className="text-center py-16 bg-card/80 rounded-2xl shadow-soft-lg border border-border fade-in">
           <div className="flex justify-center mb-10">
-            <ProfileSilhouette size="md" />
+            <span className="h-24 w-24 rounded-full border border-border flex items-center justify-center">
+              <UserRound className="h-12 w-12" />
+            </span>
           </div>
           <h2 className="text-4xl font-bold mb-4">Profile View</h2>
           <p className="text-lg text-muted-foreground mb-6">

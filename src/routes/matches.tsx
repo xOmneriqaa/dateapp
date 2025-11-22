@@ -3,12 +3,11 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Heart, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { Id } from '../../convex/_generated/dataModel';
 import { useEffect, useRef } from 'react';
 import { MatchCard } from '@/components/matches/MatchCard';
-import { DoubleSilhouette, MinimalHeart } from '@/components/ui/ascii-art';
 
 export const Route = createFileRoute('/matches')({
   component: MatchesPage,
@@ -100,8 +99,10 @@ function MatchesPage() {
           null
         ) : matches.length === 0 ? (
           <div className="text-center py-16 fade-in">
-            <div className="mb-8">
-              <MinimalHeart size="lg" />
+            <div className="mb-8 flex justify-center">
+              <span className="h-20 w-20 rounded-full border border-border flex items-center justify-center">
+                <Heart className="h-10 w-10" />
+              </span>
             </div>
             <h2 className="text-4xl font-bold mb-4">No matches yet</h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-md mx-auto">
@@ -115,9 +116,11 @@ function MatchesPage() {
           </div>
         ) : (
           <div>
-            {/* Header with ASCII art */}
-            <div className="mb-12 text-center fade-in">
-              <DoubleSilhouette size="md" className="mb-6" />
+            {/* Header */}
+            <div className="mb-12 text-center fade-in space-y-4">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-border">
+                <Users className="h-8 w-8" />
+              </div>
               <p className="text-lg text-muted-foreground">
                 {matches.length} {matches.length === 1 ? 'connection' : 'connections'} ready to explore
               </p>

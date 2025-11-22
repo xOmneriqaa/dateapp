@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ProfilePhotoSection } from '@/components/profile/ProfilePhotoSection';
 import { ProfileFormFields } from '@/components/profile/ProfileFormFields';
-import { ProfileSilhouette } from '@/components/ui/ascii-art';
+import { UserRoundPen } from 'lucide-react';
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -118,72 +118,54 @@ function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background px-4 py-16">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid lg:grid-cols-[1fr_2fr] gap-16">
-          {/* Left sidebar - ASCII art and info */}
-          <div className="hidden lg:block space-y-8 fade-in">
-            <ProfileSilhouette size="lg" />
-            
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold">Build your profile</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Your profile helps us find better matches for you. Add a photo and tell us about yourself.
-              </p>
-            </div>
-
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <p>✓ All fields are optional except age and preferences</p>
-              <p>✓ Your profile is hidden until you match</p>
-              <p>✓ You can update this anytime</p>
-            </div>
+      <div className="max-w-5xl mx-auto space-y-10">
+        <div className="text-center space-y-4 fade-in">
+          <div className="inline-flex items-center gap-3 px-5 py-2 border border-border rounded-full text-sm uppercase tracking-[0.3em] text-muted-foreground">
+            <UserRoundPen className="h-5 w-5" />
+            Profile
           </div>
+          <h1 className="text-5xl font-bold">Edit Profile</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Tell us about yourself to help us find better matches
+          </p>
+        </div>
 
-          {/* Main content */}
-          <div className="slide-up">
-            <div className="mb-8">
-              <h1 className="text-5xl font-bold mb-3">Edit Profile</h1>
-              <p className="text-xl text-muted-foreground font-light">
-                Tell us about yourself to find better matches
-              </p>
-            </div>
+        <div className="slide-up">
+          <div className="space-y-10 bg-card p-8 rounded-2xl shadow-soft-lg">
+            <ProfilePhotoSection
+              previewUrl={previewUrl}
+              isUploading={isUploading}
+              onFileSelect={handleFileSelect}
+            />
 
-            <div className="space-y-10 bg-card p-8 rounded-2xl shadow-soft-lg">
-              <ProfilePhotoSection
-                previewUrl={previewUrl}
-                isUploading={isUploading}
-                onFileSelect={handleFileSelect}
-              />
+            <ProfileFormFields
+              age={age}
+              setAge={setAge}
+              gender={gender}
+              setGender={setGender}
+              genderPreference={genderPreference}
+              setGenderPreference={setGenderPreference}
+              bio={bio}
+              setBio={setBio}
+            />
 
-              <ProfileFormFields
-                age={age}
-                setAge={setAge}
-                gender={gender}
-                setGender={setGender}
-                genderPreference={genderPreference}
-                setGenderPreference={setGenderPreference}
-                bio={bio}
-                setBio={setBio}
-              />
-
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-border">
-                <Button
-                  onClick={handleSave}
-                  disabled={!isValid || isSaving}
-                  size="lg"
-                  className="flex-1 py-7 text-lg rounded-2xl transition-smooth"
-                >
-                  {isSaving ? 'Saving...' : 'Save Profile'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate({ to: '/dashboard' })}
-                  size="lg"
-                  className="px-12 py-7 text-lg rounded-2xl transition-smooth"
-                >
-                  Cancel
-                </Button>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-border">
+              <Button
+                onClick={handleSave}
+                disabled={!isValid || isSaving}
+                size="lg"
+                className="flex-1 py-7 text-lg rounded-2xl transition-smooth"
+              >
+                {isSaving ? 'Saving...' : 'Save Profile'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate({ to: '/dashboard' })}
+                size="lg"
+                className="px-12 py-7 text-lg rounded-2xl transition-smooth"
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         </div>

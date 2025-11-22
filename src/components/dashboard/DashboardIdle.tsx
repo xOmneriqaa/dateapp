@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { DotMatrixHeart } from "@/components/ui/ascii-art";
+import { HeartHandshake } from "lucide-react";
 
 interface DashboardIdleProps {
   username?: string | null;
@@ -12,12 +12,12 @@ export function DashboardIdle({ username, firstName, isJoining, onFindMatch }: D
   return (
     <div className="flex w-full items-center justify-center px-4 py-16 min-h-[80vh]">
       <div className="w-full max-w-5xl fade-in">
-        {/* Large ASCII art as hero element */}
-        <div className="mb-16 relative">
-          <DotMatrixHeart size="lg" className="mb-8" />
+        <div className="mb-12 flex justify-center">
+          <span className="inline-flex h-20 w-20 items-center justify-center rounded-full border border-border bg-card/70">
+            <HeartHandshake className="h-10 w-10" />
+          </span>
         </div>
 
-        {/* Content section with editorial layout */}
         <div className="space-y-8 text-center max-w-3xl mx-auto">
           <h1 className="text-7xl md:text-8xl font-bold tracking-tight text-foreground">
             Ready to connect

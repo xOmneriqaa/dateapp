@@ -1,23 +1,18 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { ConnectionDots, DotField } from '@/components/ui/ascii-art';
+import { Sparkles } from 'lucide-react';
 
 export function LandingHero() {
   return (
     <div className="relative w-full max-w-6xl mx-auto">
-      {/* Decorative ASCII background element */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
-        <DotField size="lg" />
-      </div>
+      <div className="absolute inset-0 rounded-[48px] border border-border/40 bg-card/40 blur-0 pointer-events-none" aria-hidden="true"></div>
 
-      {/* Main content */}
-      <div className="relative z-10 text-center px-4 py-20">
-        {/* ASCII art accent */}
-        <div className="mb-12">
-          <ConnectionDots className="opacity-50" />
+      <div className="relative z-10 text-center px-6 py-20">
+        <div className="inline-flex items-center gap-3 px-5 py-2 border border-border rounded-full uppercase text-xs tracking-[0.3em] text-muted-foreground mb-10">
+          <Sparkles className="h-4 w-4" />
+          Speed dating reimagined
         </div>
 
-        {/* Hero text */}
         <div className="space-y-8 mb-16">
           <h1 className="text-8xl md:text-9xl font-bold tracking-tight text-foreground leading-none">
             Speed Date
@@ -27,7 +22,6 @@ export function LandingHero() {
           </p>
         </div>
 
-        {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <Link to="/register" className="w-full sm:w-auto">
             <Button
@@ -48,7 +42,6 @@ export function LandingHero() {
           </Link>
         </div>
 
-        {/* Subtle feature highlights */}
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <div className="space-y-2 fade-in">
             <h3 className="text-lg font-semibold text-foreground">Anonymous</h3>
