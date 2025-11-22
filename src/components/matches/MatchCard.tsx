@@ -76,9 +76,9 @@ export function MatchCard({ match, onSendRequest, onDelete }: MatchCardProps) {
 
   return (
     <>
-      <div className="border-2 border-black shadow-3d-sm p-6 bg-white hover:shadow-3d transition-all">
+      <div className="border border-border shadow-soft-sm p-6 bg-card/80 hover:shadow-soft-lg transition-all rounded-2xl">
         <div className="flex items-start gap-4">
-          <div className="w-20 h-20 rounded-full border-2 border-black overflow-hidden bg-gray-100 flex-shrink-0">
+          <div className="w-20 h-20 rounded-full border border-border overflow-hidden bg-muted/50 flex-shrink-0">
             {match.otherUser?.photos && match.otherUser.photos.length > 0 ? (
               <img
                 src={match.otherUser.photos[0]}
@@ -127,7 +127,7 @@ export function MatchCard({ match, onSendRequest, onDelete }: MatchCardProps) {
             type="button"
             variant="outline"
             size="icon"
-            className="border-red-500 text-red-600 hover:bg-red-50 hover:text-red-600"
+            className="border-destructive/40 text-destructive hover:bg-destructive/10"
             onClick={handleDelete}
             title="Remove match"
           >
@@ -138,11 +138,11 @@ export function MatchCard({ match, onSendRequest, onDelete }: MatchCardProps) {
 
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white border-2 border-black shadow-3d max-w-md w-full p-6 space-y-4">
+          <div className="bg-card border border-border shadow-soft-lg max-w-md w-full p-6 space-y-4 rounded-2xl">
             <div>
               <h3 className="text-2xl font-bold mb-2">Remove this match?</h3>
               <p className="text-sm text-muted-foreground">

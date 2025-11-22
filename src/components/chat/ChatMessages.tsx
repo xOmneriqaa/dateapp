@@ -24,7 +24,7 @@ export function ChatMessages({ messages, currentUserId }: ChatMessagesProps) {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-8 space-y-4 bg-white">
+    <div className="flex-1 overflow-y-auto px-6 py-8 space-y-4 bg-background">
       {messages.length === 0 && (
         <div className="text-center text-muted-foreground">
           <p>No messages yet. Say hi!</p>
@@ -38,10 +38,10 @@ export function ChatMessages({ messages, currentUserId }: ChatMessagesProps) {
             className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[70%] px-4 py-3 rounded-lg shadow-3d-sm border-2 border-black ${
+              className={`max-w-[70%] px-5 py-4 rounded-2xl shadow-soft text-sm tracking-tight ${
                 isMyMessage
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card/80 text-foreground border border-border'
               }`}
             >
               <p className="break-words">{message.content}</p>

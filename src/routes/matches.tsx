@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { Heart, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Id } from '../../convex/_generated/dataModel';
 import { useEffect, useRef } from 'react';
 import { MatchCard } from '@/components/matches/MatchCard';
+import { DoubleSilhouette, MinimalHeart } from '@/components/ui/ascii-art';
 
 export const Route = createFileRoute('/matches')({
   component: MatchesPage,
@@ -79,45 +80,60 @@ function MatchesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b-2 border-black px-6 py-4 bg-white">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
+      <div className="border-b-2 border-border px-6 py-6 bg-card shadow-soft-sm">
+        <div className="max-w-5xl mx-auto flex items-center gap-4">
           <Link to="/dashboard">
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2 rounded-xl transition-smooth">
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Your Matches</h1>
+          <h1 className="text-3xl font-bold">Your Matches</h1>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-5xl mx-auto px-6 py-12">
         {matches === undefined ? (
           null
         ) : matches.length === 0 ? (
-          <div className="text-center py-16">
-            <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-2xl font-bold mb-2">No matches yet</h2>
-            <p className="text-muted-foreground mb-6">
-              Start chatting to find your matches!
+          <div className="text-center py-16 fade-in">
+            <div className="mb-8">
+              <MinimalHeart size="lg" />
+            </div>
+            <h2 className="text-4xl font-bold mb-4">No matches yet</h2>
+            <p className="text-xl text-muted-foreground mb-8 max-w-md mx-auto">
+              Start chatting with new people to build meaningful connections
             </p>
             <Link to="/dashboard">
-              <Button size="lg">Find Match</Button>
+              <Button size="lg" className="px-16 py-7 text-lg rounded-2xl shadow-soft-lg hover-lift transition-smooth">
+                Find Match
+              </Button>
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {matches.map((match) => (
-              <MatchCard
-                key={match._id}
-                match={match}
-                onSendRequest={handleSendRequest}
-                onDelete={handleDeleteMatch}
-              />
-            ))}
+          <div>
+            {/* Header with ASCII art */}
+            <div className="mb-12 text-center fade-in">
+              <DoubleSilhouette size="md" className="mb-6" />
+              <p className="text-lg text-muted-foreground">
+                {matches.length} {matches.length === 1 ? 'connection' : 'connections'} ready to explore
+              </p>
+            </div>
+
+            {/* Matches grid */}
+            <div className="grid gap-6 md:grid-cols-2 slide-up">
+              {matches.map((match) => (
+                <MatchCard
+                  key={match._id}
+                  match={match}
+                  onSendRequest={handleSendRequest}
+                  onDelete={handleDeleteMatch}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>

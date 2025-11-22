@@ -265,7 +265,7 @@ function ChatPage() {
   const { messages, chatSession, otherUser, currentUserId, otherUserIsTyping, skipCount } = chatData;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <ChatHeader
         phase={chatSession.phase}
         skipCount={skipCount}
@@ -299,7 +299,7 @@ function ChatPage() {
 
       {/* Typing Indicator */}
       {otherUserIsTyping && !chatEnded && (
-        <div className="px-6 py-2 bg-white border-t-2 border-black">
+        <div className="px-6 py-2 bg-card/80 border-t border-border backdrop-blur">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="flex gap-1">
               <span className="animate-bounce animation-delay-0">●</span>

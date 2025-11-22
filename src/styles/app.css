@@ -1,61 +1,63 @@
 @import 'tailwindcss' source('../');
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300;400;500;600;700&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(0 0% 3.9%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(0 0% 3.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(0 0% 3.9%);
-  --primary: hsl(0 0% 9%);
-  --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(0 0% 96.1%);
-  --secondary-foreground: hsl(0 0% 9%);
-  --muted: hsl(0 0% 96.1%);
-  --muted-foreground: hsl(0 0% 45.1%);
-  --accent: hsl(0 0% 96.1%);
-  --accent-foreground: hsl(0 0% 9%);
-  --destructive: hsl(0 84.2% 60.2%);
+  /* Noir palette - default dark mode */
+  --background: hsl(240 12% 7%);          /* Deep charcoal */
+  --foreground: hsl(0 0% 96%);            /* Soft white */
+  --card: hsl(240 9% 12%);                /* Elevated panel */
+  --card-foreground: hsl(0 0% 96%);
+  --popover: hsl(240 9% 12%);
+  --popover-foreground: hsl(0 0% 96%);
+  --primary: hsl(0 0% 100%);              /* Pure white accents */
+  --primary-foreground: hsl(240 12% 7%);
+  --secondary: hsl(240 6% 18%);
+  --secondary-foreground: hsl(0 0% 96%);
+  --muted: hsl(240 6% 21%);
+  --muted-foreground: hsl(0 0% 70%);
+  --accent: hsl(260 12% 28%);
+  --accent-foreground: hsl(0 0% 98%);
+  --destructive: hsl(0 85% 60%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(0 0% 89.8%);
-  --input: hsl(0 0% 89.8%);
-  --ring: hsl(0 0% 3.9%);
-  --radius: 0.5rem;
+  --border: hsl(240 8% 24%);
+  --input: hsl(240 8% 24%);
+  --ring: hsl(260 80% 70%);
+  --radius: 12px;
+  --chart-1: hsl(260 80% 70%);
+  --chart-2: hsl(220 70% 60%);
+  --chart-3: hsl(180 55% 55%);
+  --chart-4: hsl(340 65% 65%);
+  --chart-5: hsl(45 70% 65%);
+}
+
+.light {
+  /* Optional light palette for future use */
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 16%);
+  --card: hsl(0 0% 98%);
+  --card-foreground: hsl(0 0% 16%);
+  --popover: hsl(0 0% 98%);
+  --popover-foreground: hsl(0 0% 16%);
+  --primary: hsl(0 0% 16%);
+  --primary-foreground: hsl(0 0% 98%);
+  --secondary: hsl(0 0% 92%);
+  --secondary-foreground: hsl(0 0% 16%);
+  --muted: hsl(0 0% 90%);
+  --muted-foreground: hsl(0 0% 45%);
+  --accent: hsl(0 0% 92%);
+  --accent-foreground: hsl(0 0% 16%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(0 0% 86%);
+  --input: hsl(0 0% 86%);
+  --ring: hsl(0 0% 32%);
   --chart-1: hsl(12 76% 61%);
   --chart-2: hsl(173 58% 39%);
   --chart-3: hsl(197 37% 24%);
   --chart-4: hsl(43 74% 66%);
   --chart-5: hsl(27 87% 67%);
-}
-
-.dark {
-  --background: hsl(0 0% 3.9%);
-  --foreground: hsl(0 0% 98%);
-  --card: hsl(0 0% 3.9%);
-  --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(0 0% 3.9%);
-  --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(0 0% 98%);
-  --primary-foreground: hsl(0 0% 9%);
-  --secondary: hsl(0 0% 14.9%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(0 0% 14.9%);
-  --muted-foreground: hsl(0 0% 63.9%);
-  --accent: hsl(0 0% 14.9%);
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(0 0% 14.9%);
-  --input: hsl(0 0% 14.9%);
-  --ring: hsl(0 0% 83.1%);
-  --chart-1: hsl(220 70% 50%);
-  --chart-2: hsl(160 60% 45%);
-  --chart-3: hsl(30 80% 55%);
-  --chart-4: hsl(280 65% 60%);
-  --chart-5: hsl(340 75% 55%);
 }
 
 @theme inline {
@@ -100,7 +102,7 @@
 
 @layer base {
   html {
-    color-scheme: light dark;
+    color-scheme: dark;
   }
 
   * {
@@ -110,7 +112,8 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    font-family: 'Google Sans Flex', 'Outfit', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.01em;
   }
 
   .using-mouse * {
@@ -118,9 +121,97 @@
   }
 }
 
-/* 3D Shadow Utilities for Dating App */
+/* Modern Grey-Tone Utilities */
 @layer utilities {
-  /* Elevated card effect */
+  /* Soft layered shadows for depth */
+  .shadow-soft {
+    box-shadow:
+      0 10px 30px hsl(240 60% 5% / 0.45),
+      0 2px 12px hsl(260 80% 70% / 0.08);
+  }
+
+  .shadow-soft-sm {
+    box-shadow:
+      0 4px 12px hsl(240 60% 5% / 0.35),
+      0 1px 4px hsl(260 80% 70% / 0.05);
+  }
+
+  .shadow-soft-lg {
+    box-shadow:
+      0 25px 65px hsl(240 60% 5% / 0.55),
+      0 10px 35px hsl(260 80% 70% / 0.12);
+  }
+
+  /* Smooth micro-interactions */
+  .transition-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-smooth-slow {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Hover effects - subtle and refined */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .hover-scale {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+
+  /* Fade animations - NO loading states, just smooth reveals */
+  .fade-in {
+    animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ASCII art styling */
+  .ascii-art {
+    font-family: 'Courier New', monospace;
+    line-height: 1.25;
+    color: hsl(0 0% 96%);
+    text-shadow:
+      0 0 12px hsl(0 0% 100% / 0.25),
+      0 0 32px hsl(260 70% 70% / 0.25);
+    user-select: none;
+    white-space: pre;
+    letter-spacing: 0.04em;
+  }
+
+  /* Backwards compatibility - keep existing 3D shadows */
   .shadow-3d {
     box-shadow:
       0 1px 1px hsl(0 0% 0% / 0.075),
@@ -130,7 +221,6 @@
       0 16px 16px hsl(0 0% 0% / 0.075);
   }
 
-  /* Subtle 3D lift */
   .shadow-3d-sm {
     box-shadow:
       0 1px 2px hsl(0 0% 0% / 0.1),
@@ -138,7 +228,6 @@
       0 4px 8px hsl(0 0% 0% / 0.1);
   }
 
-  /* Strong 3D effect */
   .shadow-3d-lg {
     box-shadow:
       0 2px 4px hsl(0 0% 0% / 0.1),
@@ -148,23 +237,12 @@
       0 32px 64px hsl(0 0% 0% / 0.1);
   }
 
-  /* Inset/pressed effect */
   .shadow-3d-inset {
     box-shadow:
       inset 0 2px 4px hsl(0 0% 0% / 0.15),
       inset 0 4px 8px hsl(0 0% 0% / 0.1);
   }
 
-  /* Hover lift animation */
-  .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-2px);
-  }
-
-  /* Button 3D effect */
   .btn-3d {
     position: relative;
     transform-style: preserve-3d;

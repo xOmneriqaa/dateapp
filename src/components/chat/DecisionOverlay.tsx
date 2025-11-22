@@ -8,8 +8,8 @@ interface DecisionOverlayProps {
 
 export function DecisionOverlay({ myDecision, onDecision }: DecisionOverlayProps) {
   return (
-    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white border-4 border-black shadow-3d-lg p-8 max-w-md w-full mx-4">
+    <div className="absolute inset-0 bg-background/80 backdrop-blur flex items-center justify-center z-50">
+      <div className="bg-card border border-border shadow-soft-lg p-8 max-w-md w-full mx-4 rounded-3xl">
         <h2 className="text-3xl font-bold text-center mb-6">
           Time's Up!
         </h2>
@@ -29,7 +29,7 @@ export function DecisionOverlay({ myDecision, onDecision }: DecisionOverlayProps
             </Button>
             <Button
               onClick={() => onDecision(true)}
-              className="flex-1 gap-2 py-6 text-lg bg-black text-white hover:bg-black/90"
+              className="flex-1 gap-2 py-6 text-lg"
             >
               <Heart className="h-6 w-6" />
               Yes, Continue

@@ -17,16 +17,16 @@ export function ChatHeader({
   onSkip,
 }: ChatHeaderProps) {
   return (
-    <div className="border-b-2 border-black px-6 py-4 flex justify-between items-center bg-white">
+    <div className="border-b border-border px-6 py-4 flex justify-between items-center bg-card/80 backdrop-blur">
       <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-bold tracking-tight">
           {phase === 'extended' ? 'Matched Chat' : 'Speed Dating'}
         </h1>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={onLeave}
-          className="gap-2"
+          className="gap-2 text-muted-foreground hover:text-foreground"
         >
           <LogOut className="h-4 w-4" />
           Leave
@@ -38,11 +38,11 @@ export function ChatHeader({
             variant={skipCount > 0 ? "default" : "outline"}
             size="sm"
             onClick={onSkip}
-            className={`gap-2 font-bold transition-all ${
+            className={`gap-2 font-semibold transition-all ${
               skipCount === 1
-                ? 'bg-black text-white animate-pulse'
+                ? 'bg-accent text-accent-foreground animate-pulse'
                 : skipCount === 2
-                ? 'bg-green-600 text-white'
+                ? 'bg-primary text-primary-foreground'
                 : ''
             }`}
           >

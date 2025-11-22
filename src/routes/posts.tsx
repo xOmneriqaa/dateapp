@@ -22,7 +22,7 @@ function PostsComponent() {
                     postId: String(post.id),
                   }}
                   className="block py-1 text-blue-800 hover:text-blue-600"
-                  activeProps={{ className: 'text-black font-bold' }}
+                  activeProps={{ className: 'text-foreground font-bold' }}
                 >
                   <div>{post.title.substring(0, 20)}</div>
                 </Link>

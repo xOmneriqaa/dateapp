@@ -7,8 +7,8 @@ interface ChatEndedOverlayProps {
 
 export function ChatEndedOverlay({ myDecision, onReturnToDashboard }: ChatEndedOverlayProps) {
   return (
-    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white border-4 border-black shadow-3d-lg p-8 max-w-md w-full mx-4">
+    <div className="absolute inset-0 bg-background/80 backdrop-blur flex items-center justify-center z-50">
+      <div className="bg-card border border-border shadow-soft-lg p-8 max-w-md w-full mx-4 rounded-3xl">
         <div className="text-center space-y-6">
           <div className="text-6xl">👋</div>
           <h2 className="text-3xl font-bold">Chat Has Ended</h2>

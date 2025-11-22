@@ -18,7 +18,7 @@ export function ChatInput({
   return (
     <form
       onSubmit={onSendMessage}
-      className="border-t-2 border-black px-6 py-4 bg-white"
+      className="border-t border-border px-6 py-4 bg-card/80 backdrop-blur"
     >
       <div className="flex gap-3">
         <Input

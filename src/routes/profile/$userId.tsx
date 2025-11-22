@@ -4,7 +4,8 @@ import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
-import { Loader2, ArrowLeft, User, MessageCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { ProfileSilhouette } from '@/components/ui/ascii-art';
 
 export const Route = createFileRoute('/profile/$userId')({
   component: ProfileViewPage,
@@ -25,26 +26,28 @@ function ProfileViewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b-2 border-black px-6 py-4 bg-white">
+      <div className="border-b border-border px-6 py-6 bg-card/70 backdrop-blur">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Link to="/matches">
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2 rounded-xl">
               <ArrowLeft className="h-4 w-4" />
               Back to Matches
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Profile</h1>
+          <h1 className="text-3xl font-bold">Profile</h1>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="text-center py-16">
-          <User className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-2xl font-bold mb-2">Profile View</h2>
-          <p className="text-muted-foreground mb-6">
+      <div className="max-w-4xl mx-auto px-6 py-16">
+        <div className="text-center py-16 bg-card/80 rounded-2xl shadow-soft-lg border border-border fade-in">
+          <div className="flex justify-center mb-10">
+            <ProfileSilhouette size="md" />
+          </div>
+          <h2 className="text-4xl font-bold mb-4">Profile View</h2>
+          <p className="text-lg text-muted-foreground mb-6">
             View matched user profiles (Coming Soon)
           </p>
           <p className="text-sm text-muted-foreground">

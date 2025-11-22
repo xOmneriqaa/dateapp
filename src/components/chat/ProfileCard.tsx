@@ -12,10 +12,10 @@ interface ProfileCardProps {
 
 export function ProfileCard({ otherUser }: ProfileCardProps) {
   return (
-    <div className="border-b-2 border-black px-6 py-4 bg-white">
+    <div className="border-b border-border px-6 py-4 bg-card/80 backdrop-blur">
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-4 p-4 border-2 border-black shadow-3d">
-          <div className="w-16 h-16 rounded-full border-2 border-black overflow-hidden bg-gray-100 flex-shrink-0">
+        <div className="flex items-center gap-4 p-5 border border-border shadow-soft rounded-2xl bg-card/90">
+          <div className="w-16 h-16 rounded-full border border-border overflow-hidden bg-muted/40 flex-shrink-0">
             {otherUser.photos && otherUser.photos.length > 0 ? (
               <img
                 src={otherUser.photos[0]}

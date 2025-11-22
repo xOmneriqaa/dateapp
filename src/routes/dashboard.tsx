@@ -132,21 +132,21 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
-      <div className="absolute top-4 right-4 flex gap-2">
+      <div className="absolute top-4 right-4 flex flex-wrap items-center gap-2 justify-end">
         <Link to="/profile">
-          <Button variant="outline" size="sm" className="gap-2 shadow-3d-sm hover-lift">
+          <Button variant="outline" size="sm" className="gap-2 shadow-soft-sm hover:shadow-soft">
             <User className="h-4 w-4" />
             Profile
           </Button>
         </Link>
         <Link to="/matches">
-          <Button variant="outline" size="sm" className="gap-2 shadow-3d-sm hover-lift">
+          <Button variant="outline" size="sm" className="gap-2 shadow-soft-sm hover:shadow-soft">
             <Heart className="h-4 w-4" />
             Matches
           </Button>
         </Link>
         <Link to="/notifications">
-          <Button variant="outline" size="sm" className="gap-2 relative shadow-3d-sm hover-lift">
+          <Button variant="outline" size="sm" className="gap-2 relative shadow-soft-sm hover:shadow-soft">
             <Bell className="h-4 w-4" />
             Notifications
             {pendingRequests && pendingRequests.length > 0 && (
@@ -156,7 +156,12 @@ function Dashboard() {
             )}
           </Button>
         </Link>
-        <Button variant="ghost" onClick={handleSignOut} className="border-none shadow-none hover:bg-transparent hover:text-destructive">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSignOut}
+          className="gap-2 shadow-soft-sm hover:shadow-soft"
+        >
           Sign out
         </Button>
       </div>

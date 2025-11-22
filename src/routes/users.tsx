@@ -34,7 +34,7 @@ function UsersComponent() {
                   userId: String(user.id),
                 }}
                 className="block py-1 text-blue-800 hover:text-blue-600"
-                activeProps={{ className: 'text-black font-bold' }}
+                activeProps={{ className: 'text-foreground font-bold' }}
               >
                 <div>{user.name}</div>
               </Link>

@@ -4,10 +4,10 @@ import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProfilePhotoSection } from '@/components/profile/ProfilePhotoSection';
 import { ProfileFormFields } from '@/components/profile/ProfileFormFields';
+import { ProfileSilhouette } from '@/components/ui/ascii-art';
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -117,56 +117,74 @@ function ProfilePage() {
   const isValid = age && parseInt(age) >= 18 && gender && genderPreference;
 
   return (
-    <div className="min-h-screen bg-white px-4 py-12 flex items-center justify-center">
-      <div className="max-w-2xl w-full">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Edit Profile</h1>
-          <p className="text-muted-foreground">
-            Tell us about yourself to find better matches
-          </p>
-        </div>
+    <div className="min-h-screen bg-background px-4 py-16">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-[1fr_2fr] gap-16">
+          {/* Left sidebar - ASCII art and info */}
+          <div className="hidden lg:block space-y-8 fade-in">
+            <ProfileSilhouette size="lg" />
+            
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Build your profile</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                Your profile helps us find better matches for you. Add a photo and tell us about yourself.
+              </p>
+            </div>
 
-        <div className="space-y-8">
-          <ProfilePhotoSection
-            previewUrl={previewUrl}
-            isUploading={isUploading}
-            onFileSelect={handleFileSelect}
-          />
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <p>✓ All fields are optional except age and preferences</p>
+              <p>✓ Your profile is hidden until you match</p>
+              <p>✓ You can update this anytime</p>
+            </div>
+          </div>
 
-          <ProfileFormFields
-            age={age}
-            setAge={setAge}
-            gender={gender}
-            setGender={setGender}
-            genderPreference={genderPreference}
-            setGenderPreference={setGenderPreference}
-            bio={bio}
-            setBio={setBio}
-          />
+          {/* Main content */}
+          <div className="slide-up">
+            <div className="mb-8">
+              <h1 className="text-5xl font-bold mb-3">Edit Profile</h1>
+              <p className="text-xl text-muted-foreground font-light">
+                Tell us about yourself to find better matches
+              </p>
+            </div>
 
-          {/* Actions */}
-          <div className="flex gap-4 pt-4">
-            <Button
-              onClick={handleSave}
-              disabled={!isValid || isSaving}
-              className="flex-1 py-6 text-lg"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  Saving...
-                </>
-              ) : (
-                'Save Profile'
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate({ to: '/dashboard' })}
-              className="px-8 py-6 text-lg"
-            >
-              Cancel
-            </Button>
+            <div className="space-y-10 bg-card p-8 rounded-2xl shadow-soft-lg">
+              <ProfilePhotoSection
+                previewUrl={previewUrl}
+                isUploading={isUploading}
+                onFileSelect={handleFileSelect}
+              />
+
+              <ProfileFormFields
+                age={age}
+                setAge={setAge}
+                gender={gender}
+                setGender={setGender}
+                genderPreference={genderPreference}
+                setGenderPreference={setGenderPreference}
+                bio={bio}
+                setBio={setBio}
+              />
+
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-border">
+                <Button
+                  onClick={handleSave}
+                  disabled={!isValid || isSaving}
+                  size="lg"
+                  className="flex-1 py-7 text-lg rounded-2xl transition-smooth"
+                >
+                  {isSaving ? 'Saving...' : 'Save Profile'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate({ to: '/dashboard' })}
+                  size="lg"
+                  className="px-12 py-7 text-lg rounded-2xl transition-smooth"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

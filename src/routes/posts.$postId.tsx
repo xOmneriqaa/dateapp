@@ -24,7 +24,7 @@ function PostComponent() {
         params={{
           postId: String(post.id),
         }}
-        activeProps={{ className: 'text-black font-bold' }}
+        activeProps={{ className: 'text-foreground font-bold' }}
         className="inline-block py-1 text-blue-800 hover:text-blue-600"
       >
         Deep View
