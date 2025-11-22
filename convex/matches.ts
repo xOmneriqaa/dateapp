@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 
 /**
  * Get current user's match history
@@ -73,5 +73,37 @@ export const list = query({
     );
 
     return matchesWithProfiles.filter((m) => m.otherUser !== null);
+  },
+});
+
+export const remove = mutation({
+  args: { matchId: v.id("matches") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) throw new Error("User not found");
+
+    const match = await ctx.db.get(args.matchId);
+    if (!match) throw new Error("Match not found");
+
+    if (match.user1Id !== user._id && match.user2Id !== user._id) {
+      throw new Error("Not authorized to delete this match");
+    }
+
+    const relatedRequests = await ctx.db
+      .query("chatRequests")
+      .filter((q) => q.eq(q.field("matchId"), args.matchId))
+      .collect();
+
+    await Promise.all(relatedRequests.map((req) => ctx.db.delete(req._id)));
+
+    await ctx.db.delete(args.matchId);
+    return { success: true };
   },
 });

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { Loader2, Heart, ArrowLeft } from 'lucide-react';
+import { Heart, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Id } from '../../convex/_generated/dataModel';
 import { useEffect, useRef } from 'react';
@@ -18,6 +18,7 @@ function MatchesPage() {
   const { isSignedIn, isLoaded } = useUser();
   const matches = useQuery(api.matches.list);
   const sendRequest = useMutation(api.chatRequests.send);
+  const deleteMatch = useMutation(api.matches.remove);
 
   // Track previous matches state to detect when a pending request becomes active
   const prevMatchesRef = useRef(matches);
@@ -29,6 +30,16 @@ function MatchesPage() {
     } catch (error: any) {
       console.error('Error sending request:', error);
       toast.error(error?.message || 'Failed to send request');
+    }
+  };
+
+  const handleDeleteMatch = async (matchId: Id<"matches">) => {
+    try {
+      await deleteMatch({ matchId });
+      toast.success('Match removed');
+    } catch (error: any) {
+      console.error('Error removing match:', error);
+      toast.error(error?.message || 'Failed to remove match');
     }
   };
 
@@ -104,6 +115,7 @@ function MatchesPage() {
                 key={match._id}
                 match={match}
                 onSendRequest={handleSendRequest}
+                onDelete={handleDeleteMatch}
               />
             ))}
           </div>
