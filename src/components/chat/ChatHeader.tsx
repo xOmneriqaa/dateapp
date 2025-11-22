@@ -17,7 +17,7 @@ export function ChatHeader({
   onSkip,
 }: ChatHeaderProps) {
   return (
-    <div className="border-b border-border px-6 py-4 flex justify-between items-center bg-card/80 backdrop-blur">
+    <div className="sticky top-0 z-50 border-b border-border px-6 py-4 flex justify-between items-center bg-card/80 backdrop-blur">
       <div className="flex items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">
           {phase === 'extended' ? 'Matched Chat' : 'Speed Dating'}
