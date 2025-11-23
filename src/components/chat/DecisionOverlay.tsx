@@ -3,10 +3,11 @@ import { Heart, X } from "lucide-react";
 
 interface DecisionOverlayProps {
   myDecision: boolean | null;
+  isDeciding: boolean;
   onDecision: (wantsToContinue: boolean) => void;
 }
 
-export function DecisionOverlay({ myDecision, onDecision }: DecisionOverlayProps) {
+export function DecisionOverlay({ myDecision, isDeciding, onDecision }: DecisionOverlayProps) {
   return (
     <div className="absolute inset-0 bg-background/80 backdrop-blur flex items-center justify-center z-50">
       <div className="bg-card border border-border shadow-soft-lg p-8 max-w-md w-full mx-4 rounded-3xl">
@@ -23,6 +24,7 @@ export function DecisionOverlay({ myDecision, onDecision }: DecisionOverlayProps
               onClick={() => onDecision(false)}
               variant="outline"
               className="flex-1 gap-2 py-6 text-lg"
+              disabled={isDeciding}
             >
               <X className="h-6 w-6" />
               No Thanks
@@ -30,6 +32,7 @@ export function DecisionOverlay({ myDecision, onDecision }: DecisionOverlayProps
             <Button
               onClick={() => onDecision(true)}
               className="flex-1 gap-2 py-6 text-lg"
+              disabled={isDeciding}
             >
               <Heart className="h-6 w-6" />
               Yes, Continue

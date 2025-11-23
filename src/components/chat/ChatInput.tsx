@@ -5,6 +5,7 @@ import { Send } from "lucide-react";
 interface ChatInputProps {
   newMessage: string;
   chatEnded: boolean;
+  isSending: boolean;
   onTypingChange: (value: string) => void;
   onSendMessage: (e: React.FormEvent) => void;
 }
@@ -12,6 +13,7 @@ interface ChatInputProps {
 export function ChatInput({
   newMessage,
   chatEnded,
+  isSending,
   onTypingChange,
   onSendMessage,
 }: ChatInputProps) {
@@ -31,7 +33,7 @@ export function ChatInput({
         />
         <Button
           type="submit"
-          disabled={!newMessage.trim() || chatEnded}
+          disabled={!newMessage.trim() || chatEnded || isSending}
           className="px-6 shrink-0"
         >
           <Send className="h-5 w-5" />

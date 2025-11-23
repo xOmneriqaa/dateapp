@@ -5,6 +5,7 @@ interface ChatHeaderProps {
   phase: string;
   skipCount: number;
   timeRemaining: string | null;
+  isSkipping: boolean;
   onLeave: () => void;
   onSkip: () => void;
 }
@@ -13,6 +14,7 @@ export function ChatHeader({
   phase,
   skipCount,
   timeRemaining,
+  isSkipping,
   onLeave,
   onSkip,
 }: ChatHeaderProps) {
@@ -38,6 +40,7 @@ export function ChatHeader({
             variant={skipCount > 0 ? "default" : "outline"}
             size="sm"
             onClick={onSkip}
+            disabled={isSkipping}
             className={`gap-2 font-semibold transition-all ${
               skipCount === 1
                 ? 'bg-accent text-accent-foreground animate-pulse'

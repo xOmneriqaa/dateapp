@@ -25,6 +25,9 @@ function ChatPage() {
   const [newMessage, setNewMessage] = useState('');
   const [showDecisionUI, setShowDecisionUI] = useState(false);
   const [myDecision, setMyDecision] = useState<boolean | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [isDeciding, setIsDeciding] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const timerExpiredRef = useRef(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
@@ -155,8 +158,9 @@ function ChatPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || isSending) return;
 
+    setIsSending(true);
     try {
       // Clear typing indicator
       if (typingTimeoutRef.current) {
@@ -172,6 +176,8 @@ function ChatPage() {
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -185,8 +191,9 @@ function ChatPage() {
   };
 
   const handleDecision = async (wantsToContinue: boolean) => {
-    if (myDecision !== null) return;
+    if (myDecision !== null || isDeciding) return;
 
+    setIsDeciding(true);
     try {
       const result = await makeDecision({
         chatSessionId: chatId as Id<"chatSessions">,
@@ -212,10 +219,14 @@ function ChatPage() {
     } catch (error) {
       console.error('Error submitting decision:', error);
       toast.error('Failed to submit decision. Please try again.');
+      setIsDeciding(false); // Only reset on error, otherwise keep disabled
     }
   };
 
   const handleSkip = async () => {
+    if (isSkipping) return;
+
+    setIsSkipping(true);
     try {
       await skipToReveal({
         chatSessionId: chatId as Id<"chatSessions">,
@@ -225,6 +236,8 @@ function ChatPage() {
     } catch (error) {
       console.error('Error skipping:', error);
       toast.error('Failed to skip. Please try again.');
+    } finally {
+      setIsSkipping(false);
     }
   };
 
@@ -270,6 +283,7 @@ function ChatPage() {
         phase={chatSession.phase}
         skipCount={skipCount}
         timeRemaining={timeRemaining}
+        isSkipping={isSkipping}
         onLeave={handleLeaveChat}
         onSkip={handleSkip}
       />
@@ -284,6 +298,7 @@ function ChatPage() {
       {showDecisionUI && !chatEnded && (
         <DecisionOverlay
           myDecision={myDecision}
+          isDeciding={isDeciding}
           onDecision={handleDecision}
         />
       )}
@@ -314,6 +329,7 @@ function ChatPage() {
       <ChatInput
         newMessage={newMessage}
         chatEnded={chatEnded}
+        isSending={isSending}
         onTypingChange={handleTypingChange}
         onSendMessage={handleSendMessage}
       />
