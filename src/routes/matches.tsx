@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Id } from '../../convex/_generated/dataModel';
 import { useEffect, useRef } from 'react';
 import { MatchCard } from '@/components/matches/MatchCard';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export const Route = createFileRoute('/matches')({
   component: MatchesPage,
@@ -19,6 +20,7 @@ function MatchesPage() {
   const matches = useQuery(api.matches.list);
   const sendRequest = useMutation(api.chatRequests.send);
   const deleteMatch = useMutation(api.matches.remove);
+  const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
 
   // Track previous matches state to detect when a pending request becomes active
   const prevMatchesRef = useRef(matches);
@@ -72,9 +74,7 @@ function MatchesPage() {
     prevMatchesRef.current = matches;
   }, [matches, navigate]);
 
-  // Redirect to login if not authenticated
-  if (isLoaded && !isSignedIn) {
-    navigate({ to: '/login' });
+  if (!canAccess) {
     return null;
   }
 

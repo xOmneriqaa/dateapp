@@ -6,6 +6,7 @@ import { api } from '../../convex/_generated/api';
 import { User, ArrowLeft, Check, X, BellRing, MessageSquareText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Id } from '../../convex/_generated/dataModel';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export const Route = createFileRoute('/notifications')({
   component: NotificationsPage,
@@ -17,10 +18,9 @@ function NotificationsPage() {
   const requests = useQuery(api.chatRequests.listPending);
   const acceptRequest = useMutation(api.chatRequests.accept);
   const declineRequest = useMutation(api.chatRequests.decline);
+  const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
 
-  // Redirect to login if not authenticated
-  if (isLoaded && !isSignedIn) {
-    navigate({ to: '/login' });
+  if (!canAccess) {
     return null;
   }
 

@@ -13,6 +13,7 @@ import { ChatInput } from '@/components/chat/ChatInput';
 import { DecisionOverlay } from '@/components/chat/DecisionOverlay';
 import { ChatEndedOverlay } from '@/components/chat/ChatEndedOverlay';
 import { ProfileCard } from '@/components/chat/ProfileCard';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export const Route = createFileRoute('/chat/$chatId')({
   component: ChatPage,
@@ -21,7 +22,7 @@ export const Route = createFileRoute('/chat/$chatId')({
 function ChatPage() {
   const { chatId } = Route.useParams();
   const navigate = useNavigate();
-  const { isSignedIn, isLoaded, user } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const [newMessage, setNewMessage] = useState('');
   const [showDecisionUI, setShowDecisionUI] = useState(false);
   const [myDecision, setMyDecision] = useState<boolean | null>(null);
@@ -42,6 +43,7 @@ function ChatPage() {
   const makeDecision = useMutation(api.decisions.makeDecision);
   const setTyping = useMutation(api.messages.setTyping);
   const skipToReveal = useMutation(api.decisions.skipToReveal);
+  const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
 
   // Handle typing indicator with debouncing
   const handleTypingChange = (value: string) => {
@@ -89,9 +91,7 @@ function ChatPage() {
     };
   }, []);
 
-  // Redirect to login if not authenticated
-  if (isLoaded && !isSignedIn) {
-    navigate({ to: '/login' });
+  if (!canAccess) {
     return null;
   }
 

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
 
 /**
@@ -34,18 +35,29 @@ export const makeDecision = mutation({
     // Determine which user this is
     const isUser1 = chatSession.user1Id === user._id;
 
-    // Update the user's decision
-    const updates: any = {
-      status: "waiting_reveal" as const,
-    };
+    const decisionField: "user1WantsContinue" | "user2WantsContinue" = isUser1
+      ? "user1WantsContinue"
+      : "user2WantsContinue";
 
-    if (isUser1) {
-      updates.user1WantsContinue = args.wantsToContinue;
-    } else {
-      updates.user2WantsContinue = args.wantsToContinue;
+    // Immediate end if this user chooses "no"
+    if (!args.wantsToContinue) {
+      await endSession(ctx, chatSession, args.chatSessionId, {
+        [decisionField]: false,
+      });
+
+      return {
+        success: true,
+        status: "ended" as const,
+        phase: chatSession.phase,
+        matchCreated: false,
+        bothDecided: true,
+      };
     }
 
-    await ctx.db.patch(args.chatSessionId, updates);
+    await ctx.db.patch(args.chatSessionId, {
+      [decisionField]: true,
+      status: "waiting_reveal",
+    });
 
     // Get updated session
     const updatedSession = await ctx.db.get(args.chatSessionId);
@@ -60,17 +72,14 @@ export const makeDecision = mutation({
       : args.wantsToContinue;
 
     let finalStatus: "waiting_reveal" | "active" | "ended" = "waiting_reveal";
-    let phase: "speed_dating" | "extended" = "speed_dating";
+    let phase: "speed_dating" | "extended" = chatSession.phase;
     let matchCreated = false;
 
-    // If both users have decided
     if (user1Decision !== undefined && user2Decision !== undefined) {
       if (user1Decision && user2Decision) {
-        // Both want to continue - create match and transition to extended phase
         finalStatus = "active";
         phase = "extended";
 
-        // Create match record
         await ctx.db.insert("matches", {
           user1Id: chatSession.user1Id,
           user2Id: chatSession.user2Id,
@@ -80,32 +89,12 @@ export const makeDecision = mutation({
 
         matchCreated = true;
 
-        // Update session to extended phase
         await ctx.db.patch(args.chatSessionId, {
           status: "active",
           phase: "extended",
         });
       } else {
-        // At least one doesn't want to continue - end chat
-        await ctx.db.patch(args.chatSessionId, {
-          status: "ended",
-          endedAt: Date.now(),
-        });
-
-        // Remove both users from queue to prevent immediate rematching
-        await ctx.db.patch(chatSession.user1Id, { isInQueue: false });
-        await ctx.db.patch(chatSession.user2Id, { isInQueue: false });
-
-        // Delete all messages for privacy
-        const messages = await ctx.db
-          .query("messages")
-          .withIndex("by_chat_session", (q) => q.eq("chatSessionId", args.chatSessionId))
-          .collect();
-
-        for (const message of messages) {
-          await ctx.db.delete(message._id);
-        }
-
+        await endSession(ctx, chatSession, args.chatSessionId);
         finalStatus = "ended";
       }
     }
@@ -119,6 +108,31 @@ export const makeDecision = mutation({
     };
   },
 });
+
+async function endSession(
+  ctx: MutationCtx,
+  chatSession: Doc<"chatSessions">,
+  chatSessionId: Id<"chatSessions">,
+  extraPatch?: Record<string, unknown>,
+) {
+  await ctx.db.patch(chatSessionId, {
+    status: "ended",
+    endedAt: Date.now(),
+    ...extraPatch,
+  });
+
+  await ctx.db.patch(chatSession.user1Id, { isInQueue: false });
+  await ctx.db.patch(chatSession.user2Id, { isInQueue: false });
+
+  const messages = await ctx.db
+    .query("messages")
+    .withIndex("by_chat_session", (q) => q.eq("chatSessionId", chatSessionId))
+    .collect();
+
+  for (const message of messages) {
+    await ctx.db.delete(message._id);
+  }
+}
 
 /**
  * Skip speed dating phase and move to profile reveal

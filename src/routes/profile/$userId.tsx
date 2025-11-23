@@ -1,9 +1,8 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@clerk/tanstack-react-start';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
 import { ArrowLeft, UserRound } from 'lucide-react';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export const Route = createFileRoute('/profile/$userId')({
   component: ProfileViewPage,
@@ -13,13 +12,9 @@ function ProfileViewPage() {
   const { userId } = Route.useParams();
   const navigate = useNavigate();
   const { isSignedIn, isLoaded } = useUser();
+  const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
 
-  // We'll need to create a query to fetch user profiles
-  // For now, let's show a coming soon message
-
-  // Redirect to login if not authenticated
-  if (isLoaded && !isSignedIn) {
-    navigate({ to: '/login' });
+  if (!canAccess) {
     return null;
   }
 
@@ -52,6 +47,9 @@ function ProfileViewPage() {
           </p>
           <p className="text-sm text-muted-foreground">
             For now, you can see profiles in the chat when you match!
+          </p>
+          <p className="text-xs text-muted-foreground/80 mt-6">
+            Selected profile id: {userId}
           </p>
         </div>
       </div>

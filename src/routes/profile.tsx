@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { ProfilePhotoSection } from '@/components/profile/ProfilePhotoSection';
 import { ProfileFormFields } from '@/components/profile/ProfileFormFields';
 import { UserRoundPen } from 'lucide-react';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -19,6 +20,7 @@ function ProfilePage() {
   const profile = useQuery(api.profile.get);
   const updateProfile = useMutation(api.profile.update);
   const generateUploadUrl = useMutation(api.profile.generateUploadUrl);
+  const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
 
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
@@ -42,9 +44,7 @@ function ProfilePage() {
     }
   }, [profile]);
 
-  // Redirect to login if not authenticated
-  if (isLoaded && !isSignedIn) {
-    navigate({ to: '/login' });
+  if (!canAccess) {
     return null;
   }
 

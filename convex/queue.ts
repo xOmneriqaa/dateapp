@@ -12,29 +12,15 @@ export const join = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
 
-    // Get or create current user (auto-creates if doesn't exist)
-    let user = await ctx.db
+    const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .unique();
 
-    // Auto-create user if doesn't exist (backup for when webhook hasn't fired)
     if (!user) {
-      const now = Date.now();
-      const userId = await ctx.db.insert("users", {
-        clerkId: identity.subject,
-        email: identity.email || "",
-        name: identity.name || identity.givenName || identity.nickname || "User",
-        image: identity.pictureUrl,
-        emailVerified: identity.emailVerified || false,
-        isInQueue: false,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      const newUser = await ctx.db.get(userId);
-      if (!newUser) throw new Error("Failed to create user");
-      user = newUser;
+      throw new Error(
+        "Account not found. Please sign out and sign in again so we can resync your profile."
+      );
     }
 
     // Check if user already has an active session - prevent accidental rejoining

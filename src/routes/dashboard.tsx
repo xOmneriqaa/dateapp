@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { AccountNotFound } from '@/components/dashboard/AccountNotFound';
 import { DashboardIdle } from '@/components/dashboard/DashboardIdle';
 import { DashboardSearching } from '@/components/dashboard/DashboardSearching';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
@@ -19,6 +20,7 @@ function Dashboard() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { signOut } = useClerk();
   const [isJoining, setIsJoining] = useState(false);
+  const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
 
   // Convex hooks - reactive queries automatically update
   const queueStatus = useQuery(api.queue.status);
@@ -31,7 +33,6 @@ function Dashboard() {
   // Track previous matches state to detect when a pending request becomes active
   const prevMatchesRef = useRef(matches);
 
-  // Handler functions
   const handleCancelSearch = async () => {
     try {
       await leaveQueue({});
@@ -57,9 +58,7 @@ function Dashboard() {
     }
   };
 
-  // Redirect to login if not authenticated
-  if (isLoaded && !isSignedIn) {
-    navigate({ to: '/login' });
+  if (!canAccess) {
     return null;
   }
 

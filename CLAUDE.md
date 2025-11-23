@@ -12,6 +12,11 @@ This file provides guidance to Claude Code when working with this codebase.
 - **Auth**: Clerk (managed auth with JWT integration)
 - **Real-time**: Convex handles WebSockets automatically via `useQuery` hooks
 
+## Status Snapshot (Nov 23, 2025)
+- `src/hooks/useRequireAuth.ts` now owns all protected-route redirects. Always call this hook right after `useUser()` so navigation happens inside an effect instead of during render.
+- `convex/queue.join` refuses to auto-create users; if a Clerk identity is missing in Convex, the frontend surfaces the `AccountNotFound` view and prompts the user to sign out.
+- All non-CLAUDE markdown files were intentionally cleared on Nov 23 to prevent stale guidance. Treat this document as the single source of truth.
+
 ## Key Technical Concepts
 
 ### Convex Real-Time
@@ -28,7 +33,7 @@ This file provides guidance to Claude Code when working with this codebase.
 - **Setup**: Create Clerk JWT template (select "Convex" preset) + `convex/auth.config.js`
 - **Frontend**: `ClerkProvider` wraps `ConvexProviderWithClerk` with `useAuth` prop
 - **Backend**: Access `ctx.auth.getUserIdentity()` in queries/mutations
-- **User sync**: See `convex/users.ts` `getOrCreateCurrentUser` for graceful user creation without webhooks
+- **User sync**: Rely on Clerk webhooks (`convex/users.upsertFromClerk`) to create/update users. Server mutations such as `queue.join` never auto-create; missing users should surface the `AccountNotFound` UI so deleted accounts stay deleted.
 
 ## Development Workflow
 
@@ -70,6 +75,7 @@ npx convex deploy  # Deploy backend
 - **Use useEffect only for**: external systems (browser APIs), post-render side effects
 - **Rule**: "User clicked button" → event handler | "Component mounted" → useEffect
 - Use refs to prevent infinite loops (see `dashboard.tsx` example)
+- Auth redirects must use `useRequireAuth` (see `src/hooks/useRequireAuth.ts`) rather than calling `navigate` during render.
 
 ### shadcn/ui
 - Config: `components.json` | Components: `src/components/ui/`
