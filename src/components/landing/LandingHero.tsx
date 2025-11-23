@@ -4,10 +4,8 @@ import { Sparkles } from 'lucide-react';
 
 export function LandingHero() {
   return (
-    <div className="relative w-full max-w-6xl mx-auto">
-      <div className="absolute inset-0 rounded-[48px] border border-border/40 bg-card/40 blur-0 pointer-events-none" aria-hidden="true"></div>
-
-      <div className="relative z-10 text-center px-6 py-20">
+    <div className="w-full max-w-6xl mx-auto">
+      <div className="text-center px-6 py-20">
         <div className="inline-flex items-center gap-3 px-5 py-2 border border-border rounded-full uppercase text-xs tracking-[0.3em] text-muted-foreground mb-10">
           <Sparkles className="h-4 w-4" />
           Speed dating reimagined

@@ -9,7 +9,7 @@ export const Route = createFileRoute('/login')({
 function Login() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md mx-auto">
         <SignIn
           routing="hash"
           signUpUrl="/register"
