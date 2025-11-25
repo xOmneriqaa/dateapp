@@ -103,8 +103,19 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
           isLoading: false,
           hasServerKey: true,
         }));
+      } else if (encryptionStatus?.publicKey) {
+        // No local keys BUT server has a key = user is on a new device
+        // DON'T auto-generate new keys - this would break existing encrypted messages
+        // User must either import backup or explicitly generate new keys
+        setState((prev) => ({
+          ...prev,
+          isReady: false, // Not ready until user restores or generates keys
+          isLoading: false,
+          hasLocalKeys: false,
+          hasServerKey: true, // Server has a key (from another device)
+        }));
       } else {
-        // No local keys - generate new ones
+        // No local keys AND no server key = first time user, generate new keys
         const newKeyPair = await generateKeyPair();
 
         // Store in IndexedDB
