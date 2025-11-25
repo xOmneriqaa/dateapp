@@ -23,8 +23,21 @@ export async function getSodium(): Promise<typeof _sodium> {
 }
 
 /**
+ * Application-level encryption salt
+ * This adds a layer of security - attackers need both user ID AND this salt
+ * In production, set VITE_ENCRYPTION_SALT to a random 32+ character string
+ */
+const ENCRYPTION_SALT = import.meta.env.VITE_ENCRYPTION_SALT ||
+  "dateapp-e2ee-default-salt-change-in-production-2024";
+
+/**
  * Generate a deterministic X25519 keypair from user ID
- * Same user ID = same keys on all devices (no backup needed)
+ * Uses HKDF-style derivation: BLAKE2b(salt || userId || context)
+ * Same user ID + same salt = same keys on all devices
+ *
+ * Security note: This provides encryption but not true E2EE since
+ * keys are derivable from user ID. This is a tradeoff for cross-device
+ * convenience without requiring backup/restore.
  */
 export async function generateKeyPair(userId?: string): Promise<{
   publicKey: string; // Base64 encoded
@@ -35,12 +48,19 @@ export async function generateKeyPair(userId?: string): Promise<{
   let keyPair;
 
   if (userId) {
-    // Deterministic key generation from user ID
-    // Use BLAKE2b hash to create a 32-byte seed from user ID
+    // HKDF-style key derivation using BLAKE2b
+    // Input: salt + userId + context (domain separation)
+    // Output: 32-byte seed for X25519 keypair
+    const context = "dateapp-x25519-keypair-v1";
+    const ikm = ENCRYPTION_SALT + "|" + userId + "|" + context;
+
+    // Use crypto_generichash (BLAKE2b) as the extraction step
+    // Then use the output as seed for keypair generation
     const seed = sodium.crypto_generichash(
       sodium.crypto_box_SEEDBYTES,
-      sodium.from_string(userId + "_dateapp_e2ee_v1")
+      sodium.from_string(ikm)
     );
+
     keyPair = sodium.crypto_box_seed_keypair(seed);
   } else {
     // Fallback to random generation (legacy)
