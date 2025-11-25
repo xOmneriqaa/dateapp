@@ -65,24 +65,32 @@ export default defineSchema({
   messages: defineTable({
     chatSessionId: v.id("chatSessions"),
     senderId: v.id("users"),
-    content: v.string(),
+    content: v.string(), // Text content or empty for image-only
+    messageType: v.optional(v.union(v.literal("text"), v.literal("image"))), // Default: text
+    imageStorageId: v.optional(v.id("_storage")), // For image messages
     createdAt: v.number(),
     readAt: v.optional(v.number()),
   })
     .index("by_chat_session", ["chatSessionId"])
     .index("by_chat_and_time", ["chatSessionId", "createdAt"]),
 
-  // Matches table (mutual interest)
+  // Matches table (mutual interest) - now represents persistent chats
   matches: defineTable({
     user1Id: v.id("users"),
     user2Id: v.id("users"),
     chatSessionId: v.id("chatSessions"),
     matchedAt: v.number(),
+    // Persistent chat fields
+    isActive: v.boolean(), // false = connection was cut
+    lastMessageAt: v.optional(v.number()), // for sorting chats by recency
+    // Track who cut the connection (for "user left" message)
+    endedBy: v.optional(v.id("users")),
   })
     .index("by_user1", ["user1Id"])
     .index("by_user2", ["user2Id"])
     .index("by_users", ["user1Id", "user2Id"])
-    .index("by_chat_session", ["chatSessionId"]),
+    .index("by_chat_session", ["chatSessionId"])
+    .index("by_active", ["isActive"]),
 
   // Chat requests table (for reconnecting with matches)
   chatRequests: defineTable({

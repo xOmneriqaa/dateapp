@@ -13,9 +13,14 @@ This file provides guidance to Claude Code when working with this codebase.
 - **Real-time**: Convex handles WebSockets automatically via `useQuery` hooks
 
 ## Status Snapshot (Nov 25, 2025)
+- **MAJOR CHANGE**: Matches are now **persistent WhatsApp-style chats**. No more chat requests needed - matched users can message anytime.
+- **Cut Connection**: Either user can "cut" the connection, which removes the chat for both users and deletes all messages.
+- **Profile reveal**: Profile cards now appear inline in the chat stream (not at the top) when users match.
+- **New message indicator**: Uses `use-stick-to-bottom` library - no auto-scroll, shows "New messages" button when user has scrolled up.
+- **Decision timeout**: 30 seconds to respond after the 15-minute timer. If one user says Yes and the other doesn't respond, chat times out.
+- **Cancel decision**: Users can change their mind while waiting for the other person to decide.
 - `src/hooks/useRequireAuth.ts` now owns all protected-route redirects. Always call this hook right after `useUser()` so navigation happens inside an effect instead of during render.
 - `convex/queue.join` refuses to auto-create users; if a Clerk identity is missing in Convex, the frontend surfaces the `AccountNotFound` view and prompts the user to sign out.
-- All non-CLAUDE markdown files were intentionally cleared on Nov 23 to prevent stale guidance. Treat this document as the single source of truth.
 - Boilerplate routes from TanStack Start template removed (posts, users, deferred, redirect, _pathlessLayout).
 
 ## Key Technical Concepts
@@ -155,16 +160,21 @@ if (queueStatus && !queueStatus.userExists) {
 
 ### ✅ Completed
 - Core features: Auth, matching queue, 15-min speed dating, decision mechanism, extended chat
+- **Persistent chats**: WhatsApp-style always-available chats after matching (no chat requests)
+- **Cut connection**: Either user can end a chat - kicks out other user with toast notification
+- **Inline profile reveal**: Profile card appears in chat message stream when matched
+- **Smart scroll**: `use-stick-to-bottom` - no auto-scroll, "New messages" indicator
+- **Decision timeout**: 30-second timeout if one user doesn't respond
+- **Cancel decision**: Change your mind while waiting for other user
 - Security: Webhook signature verification, race condition prevention, rate limiting, input validation
-- Privacy: Message auto-deletion on chat end
+- Privacy: Message auto-deletion on chat end or cut connection
 - Performance: Query limiting, optimized re-renders, proper React patterns
 - User management: Username display priority, cascade deletion from Clerk → Convex, deleted user error handling
 - Profile editing with photo upload (`profile.tsx`, `convex/profile.ts`)
-- Match history with reconnection requests (`matches.tsx`, `convex/matches.ts`, `convex/chatRequests.ts`)
 - Notifications page for pending chat requests (`notifications.tsx`)
 - Skip feature: Both users can skip speed dating → direct to extended phase
 - Typing indicators with 5-second timeout
-- Auto-redirect on match found or chat request accepted
+- Auto-redirect on match found
 
 ### 🚧 Todo
 - Phase 2 profile visibility (`profile/$userId.tsx` placeholder exists)
@@ -172,10 +182,13 @@ if (queueStatus && !queueStatus.userExists) {
 - Settings page
 - Report/block system
 - Typing indicator cleanup via scheduled functions
+- Unread message count per chat
 
 ## Key Files Reference
 - **Backend**: `convex/schema.ts`, `convex/users.ts`, `convex/queue.ts`, `convex/messages.ts`, `convex/decisions.ts`, `convex/http.ts`, `convex/matches.ts`, `convex/chatRequests.ts`, `convex/profile.ts`
-- **Frontend**: `src/routes/__root.tsx`, `src/routes/dashboard.tsx`, `src/routes/chat/$chatId.tsx`, `src/routes/matches.tsx`, `src/routes/notifications.tsx`, `src/routes/profile.tsx`
+- **Frontend Routes**: `src/routes/__root.tsx`, `src/routes/dashboard.tsx`, `src/routes/chat/$chatId.tsx`, `src/routes/matches.tsx` (Chats page), `src/routes/notifications.tsx`, `src/routes/profile.tsx`
+- **Chat Components**: `src/components/chat/ChatMessages.tsx` (uses stick-to-bottom), `src/components/chat/InlineProfileCard.tsx`, `src/components/chat/DecisionOverlay.tsx` (with cancel/timeout)
+- **Chat List**: `src/components/matches/ChatListCard.tsx` (WhatsApp-style chat preview with cut connection)
 - **Config**: `src/styles/app.css`, `vite.config.ts`, `convex/auth.config.js`
 
 ## Critical Lessons Learned

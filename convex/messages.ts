@@ -32,13 +32,24 @@ export const list = query({
 
     // Get messages (limited to 200 for DoS protection)
     // Using .take() instead of .collect() prevents fetching unbounded results
-    const messages = await ctx.db
+    const rawMessages = await ctx.db
       .query("messages")
       .withIndex("by_chat_and_time", (q) =>
         q.eq("chatSessionId", args.chatSessionId)
       )
       .order("asc") // Oldest first for display
       .take(200); // Limit to 200 messages max
+
+    // Resolve image URLs for image messages
+    const messages = await Promise.all(
+      rawMessages.map(async (msg) => {
+        if (msg.imageStorageId) {
+          const imageUrl = await ctx.storage.getUrl(msg.imageStorageId);
+          return { ...msg, imageUrl };
+        }
+        return { ...msg, imageUrl: null };
+      })
+    );
 
     // Get other user if in extended phase
     let otherUser = null;
@@ -70,6 +81,18 @@ export const list = query({
       ? (chatSession.user1WantsSkip ? 1 : 0) + (chatSession.user2WantsSkip ? 1 : 0)
       : 0;
 
+    // Check if there's a match for this chat session
+    const match = await ctx.db
+      .query("matches")
+      .withIndex("by_chat_session", (q) => q.eq("chatSessionId", args.chatSessionId))
+      .first();
+
+    // Check if chat was "cut" by the other user (for kick-out detection)
+    let wasCutByOtherUser = false;
+    if (match && !match.isActive && match.endedBy) {
+      wasCutByOtherUser = match.endedBy !== user._id;
+    }
+
     return {
       messages,
       chatSession,
@@ -77,6 +100,9 @@ export const list = query({
       currentUserId: user._id, // Add current user's Convex ID for message ownership comparison
       otherUserIsTyping: isTypingActive || false,
       skipCount,
+      matchId: match?._id ?? null,
+      matchedAt: match?.matchedAt ?? null, // When the match was created (for profile card positioning)
+      wasCutByOtherUser,
     };
   },
 });
@@ -169,6 +195,18 @@ export const send = mutation({
       });
     }
 
+    // Update lastMessageAt on the match for proper chat ordering
+    const match = await ctx.db
+      .query("matches")
+      .withIndex("by_chat_session", (q) => q.eq("chatSessionId", args.chatSessionId))
+      .first();
+
+    if (match) {
+      await ctx.db.patch(match._id, {
+        lastMessageAt: now,
+      });
+    }
+
     const message = await ctx.db.get(messageId);
     return message;
   },
@@ -176,6 +214,8 @@ export const send = mutation({
 
 /**
  * Leave a chat session
+ * - Speed dating phase: Ends the session and deletes messages (no match yet)
+ * - Extended phase (matched): Does nothing - chat persists in Chats tab
  */
 export const leaveChat = mutation({
   args: {
@@ -200,7 +240,13 @@ export const leaveChat = mutation({
       throw new Error("Unauthorized");
     }
 
-    // End the session
+    // For extended/matched chats, just return - chat persists in Chats tab
+    // User can use cutConnection from Chats page to permanently delete
+    if (chatSession.phase === "extended") {
+      return { success: true, persisted: true };
+    }
+
+    // For speed dating phase, end the session (no match was made)
     await ctx.db.patch(args.chatSessionId, {
       status: "ended",
       endedAt: Date.now(),
@@ -210,7 +256,7 @@ export const leaveChat = mutation({
     await ctx.db.patch(chatSession.user1Id, { isInQueue: false });
     await ctx.db.patch(chatSession.user2Id, { isInQueue: false });
 
-    // Delete all messages for privacy
+    // Delete all messages for privacy (speed dating is anonymous)
     const messages = await ctx.db
       .query("messages")
       .withIndex("by_chat_session", (q) => q.eq("chatSessionId", args.chatSessionId))
@@ -220,7 +266,7 @@ export const leaveChat = mutation({
       await ctx.db.delete(message._id);
     }
 
-    return { success: true };
+    return { success: true, persisted: false };
   },
 });
 
@@ -273,5 +319,138 @@ export const setTyping = mutation({
     }
 
     return { success: true };
+  },
+});
+
+/**
+ * Generate a short-lived upload URL for image uploads
+ * Only available in extended (matched) chats
+ */
+export const generateUploadUrl = mutation({
+  args: {
+    chatSessionId: v.id("chatSessions"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) throw new Error("User not found");
+
+    const chatSession = await ctx.db.get(args.chatSessionId);
+    if (!chatSession) throw new Error("Chat session not found");
+
+    // Verify user is part of this chat
+    if (chatSession.user1Id !== user._id && chatSession.user2Id !== user._id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Only allow image uploads in extended (matched) chats
+    if (chatSession.phase !== "extended") {
+      throw new Error("Image uploads are only available in matched chats");
+    }
+
+    // Check if chat is still active
+    if (chatSession.status !== "active") {
+      throw new Error("Chat session is not active");
+    }
+
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+/**
+ * Send an image message in a chat session
+ * Only available in extended (matched) chats
+ */
+export const sendImage = mutation({
+  args: {
+    chatSessionId: v.id("chatSessions"),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) throw new Error("User not found");
+
+    const chatSession = await ctx.db.get(args.chatSessionId);
+    if (!chatSession) throw new Error("Chat session not found");
+
+    // Verify user is part of this chat
+    if (chatSession.user1Id !== user._id && chatSession.user2Id !== user._id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Only allow image uploads in extended (matched) chats
+    if (chatSession.phase !== "extended") {
+      throw new Error("Image uploads are only available in matched chats");
+    }
+
+    // Check if chat is still active
+    if (chatSession.status !== "active") {
+      throw new Error("Chat session is not active");
+    }
+
+    const now = Date.now();
+
+    // Rate limiting: Check if user sent more than 5 images in last minute
+    const oneMinuteAgo = now - 60000;
+    const recentMessages = await ctx.db
+      .query("messages")
+      .withIndex("by_chat_and_time", (q) =>
+        q.eq("chatSessionId", args.chatSessionId)
+      )
+      .order("desc")
+      .take(20);
+
+    const userRecentImages = recentMessages.filter(
+      (m) => m.senderId === user._id &&
+             m.messageType === "image" &&
+             m.createdAt > oneMinuteAgo
+    );
+
+    if (userRecentImages.length >= 5) {
+      throw new Error("You're sending images too quickly. Please wait a moment.");
+    }
+
+    // Insert image message
+    const messageId = await ctx.db.insert("messages", {
+      chatSessionId: args.chatSessionId,
+      senderId: user._id,
+      content: "", // Empty for image-only messages
+      messageType: "image",
+      imageStorageId: args.storageId,
+      createdAt: now,
+    });
+
+    // Clear typing indicator
+    const isUser1 = chatSession.user1Id === user._id;
+    if (isUser1) {
+      await ctx.db.patch(args.chatSessionId, { user1Typing: false });
+    } else {
+      await ctx.db.patch(args.chatSessionId, { user2Typing: false });
+    }
+
+    // Update lastMessageAt on the match
+    const match = await ctx.db
+      .query("matches")
+      .withIndex("by_chat_session", (q) => q.eq("chatSessionId", args.chatSessionId))
+      .first();
+
+    if (match) {
+      await ctx.db.patch(match._id, { lastMessageAt: now });
+    }
+
+    return await ctx.db.get(messageId);
   },
 });

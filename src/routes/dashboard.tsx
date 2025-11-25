@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { useUser, useClerk } from '@clerk/tanstack-react-start';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { useState, useEffect, useRef } from 'react';
-import { User, Heart, Bell } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, MessageCircle, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { AccountNotFound } from '@/components/dashboard/AccountNotFound';
 import { DashboardIdle } from '@/components/dashboard/DashboardIdle';
@@ -27,11 +27,8 @@ function Dashboard() {
   const joinQueue = useMutation(api.queue.join);
   const leaveQueue = useMutation(api.queue.leave);
   const pendingRequests = useQuery(api.chatRequests.listPending);
-  const matches = useQuery(api.matches.list, {});
+  const chats = useQuery(api.matches.list, {});
   const isLoadingState = !isLoaded;
-
-  // Track previous matches state to detect when a pending request becomes active
-  const prevMatchesRef = useRef(matches);
 
   const handleCancelSearch = async () => {
     try {
@@ -71,35 +68,6 @@ function Dashboard() {
       });
     }
   }, [queueStatus, navigate]);
-
-  // Auto-redirect when a new chat session is created (request accepted)
-  useEffect(() => {
-    if (!matches || !prevMatchesRef.current) {
-      prevMatchesRef.current = matches;
-      return;
-    }
-
-    // Check if any match has a new active chat session
-    matches.forEach((match) => {
-      const prevMatch = prevMatchesRef.current?.find((m) => m._id === match._id);
-
-      if (
-        prevMatch &&
-        !prevMatch.hasActiveChat &&
-        match.hasActiveChat &&
-        match.chatSessionId
-      ) {
-        // New chat session created! Redirect
-        toast.success('Chat is ready!');
-        navigate({
-          to: '/chat/$chatId',
-          params: { chatId: match.chatSessionId },
-        });
-      }
-    });
-
-    prevMatchesRef.current = matches;
-  }, [matches, navigate]);
 
   if (isLoadingState) {
     return (
@@ -161,9 +129,14 @@ function Dashboard() {
           </Button>
         </Link>
         <Link to="/matches">
-          <Button variant="outline" size="sm" className="gap-2 shadow-soft-sm hover:shadow-soft">
-            <Heart className="h-4 w-4" />
-            Matches
+          <Button variant="outline" size="sm" className="gap-2 relative shadow-soft-sm hover:shadow-soft">
+            <MessageCircle className="h-4 w-4" />
+            Chats
+            {chats && chats.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                {chats.length}
+              </span>
+            )}
           </Button>
         </Link>
         <Link to="/notifications">

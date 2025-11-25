@@ -84,6 +84,7 @@ export const makeDecision = mutation({
           user2Id: chatSession.user2Id,
           chatSessionId: args.chatSessionId,
           matchedAt: Date.now(),
+          isActive: true, // Persistent chat - always active until someone cuts connection
         });
 
         matchCreated = true;
@@ -198,6 +199,7 @@ export const skipToReveal = mutation({
         user2Id: chatSession.user2Id,
         chatSessionId: args.chatSessionId,
         matchedAt: Date.now(),
+        isActive: true, // Persistent chat - always active until someone cuts connection
       });
 
       matchCreated = true;
@@ -214,6 +216,124 @@ export const skipToReveal = mutation({
       bothSkipped: user1Skip && user2Skip,
       matchCreated,
       skipCount: (user1Skip ? 1 : 0) + (user2Skip ? 1 : 0),
+    };
+  },
+});
+
+/**
+ * Cancel/retract a decision while waiting for the other user
+ * Allows users to change their mind before the other user decides
+ */
+export const cancelDecision = mutation({
+  args: {
+    chatSessionId: v.id("chatSessions"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) throw new Error("User not found");
+
+    const chatSession = await ctx.db.get(args.chatSessionId);
+    if (!chatSession) throw new Error("Chat session not found");
+
+    if (chatSession.user1Id !== user._id && chatSession.user2Id !== user._id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Can only cancel while waiting for other user's decision
+    if (chatSession.status !== "waiting_reveal") {
+      throw new Error("Cannot cancel decision - chat is not in waiting state");
+    }
+
+    const isUser1 = chatSession.user1Id === user._id;
+    const myDecisionField = isUser1 ? "user1WantsContinue" : "user2WantsContinue";
+    const otherDecisionField = isUser1 ? "user2WantsContinue" : "user1WantsContinue";
+
+    // Check that the OTHER user hasn't decided yet
+    const otherDecision = chatSession[otherDecisionField];
+    if (otherDecision !== undefined) {
+      throw new Error("Cannot cancel - other user has already decided");
+    }
+
+    // Reset this user's decision
+    await ctx.db.patch(args.chatSessionId, {
+      [myDecisionField]: undefined,
+      status: "active", // Go back to active state
+    });
+
+    return { success: true };
+  },
+});
+
+/**
+ * Handle decision timeout - ends chat if timer expires and decisions aren't made
+ * Called by frontend when detecting timeout
+ */
+export const handleDecisionTimeout = mutation({
+  args: {
+    chatSessionId: v.id("chatSessions"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) throw new Error("User not found");
+
+    const chatSession = await ctx.db.get(args.chatSessionId);
+    if (!chatSession) throw new Error("Chat session not found");
+
+    if (chatSession.user1Id !== user._id && chatSession.user2Id !== user._id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Only handle timeout for waiting_reveal status
+    if (chatSession.status !== "waiting_reveal") {
+      return { success: false, reason: "Not in waiting state" };
+    }
+
+    // Check if both users have decided - if so, no timeout needed
+    const user1Decided = chatSession.user1WantsContinue !== undefined;
+    const user2Decided = chatSession.user2WantsContinue !== undefined;
+
+    if (user1Decided && user2Decided) {
+      return { success: false, reason: "Both users have decided" };
+    }
+
+    // Timeout - end the session
+    await ctx.db.patch(args.chatSessionId, {
+      status: "ended",
+      endedAt: Date.now(),
+    });
+
+    // Remove users from queue
+    await ctx.db.patch(chatSession.user1Id, { isInQueue: false });
+    await ctx.db.patch(chatSession.user2Id, { isInQueue: false });
+
+    // Delete messages for privacy
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_chat_session", (q) => q.eq("chatSessionId", args.chatSessionId))
+      .collect();
+
+    for (const message of messages) {
+      await ctx.db.delete(message._id);
+    }
+
+    return {
+      success: true,
+      timedOut: true,
+      userWhoTimedOut: !user1Decided ? "user1" : "user2",
     };
   },
 });

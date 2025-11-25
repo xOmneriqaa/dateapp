@@ -12,8 +12,11 @@ import { ChatMessages } from '@/components/chat/ChatMessages';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { DecisionOverlay } from '@/components/chat/DecisionOverlay';
 import { ChatEndedOverlay } from '@/components/chat/ChatEndedOverlay';
-import { ProfileCard } from '@/components/chat/ProfileCard';
+import { InlineProfileCard } from '@/components/chat/InlineProfileCard';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+
+// Decision timeout: 30 seconds to respond after other person decides
+const DECISION_TIMEOUT_SECONDS = 30;
 
 export const Route = createFileRoute('/chat/$chatId')({
   component: ChatPage,
@@ -43,7 +46,17 @@ function ChatPage() {
   const makeDecision = useMutation(api.decisions.makeDecision);
   const setTyping = useMutation(api.messages.setTyping);
   const skipToReveal = useMutation(api.decisions.skipToReveal);
+  const cancelDecision = useMutation(api.decisions.cancelDecision);
+  const handleDecisionTimeout = useMutation(api.decisions.handleDecisionTimeout);
+  const generateUploadUrl = useMutation(api.messages.generateUploadUrl);
+  const sendImage = useMutation(api.messages.sendImage);
   const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
+
+  // State for cancel decision and timeout
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [decisionTimeoutSeconds, setDecisionTimeoutSeconds] = useState<number | undefined>(undefined);
+  const decisionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Handle typing indicator with debouncing
   const handleTypingChange = (value: string) => {
@@ -88,22 +101,70 @@ function ChatPage() {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      if (decisionTimeoutRef.current) {
+        clearTimeout(decisionTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Kick-out detection: if other user cut the connection, redirect to dashboard
+  useEffect(() => {
+    if (chatData?.wasCutByOtherUser) {
+      toast.error('The other user has left the chat', {
+        duration: 5000,
+      });
+      navigate({ to: '/dashboard' });
+    }
+  }, [chatData?.wasCutByOtherUser, navigate]);
+
+  // Decision timeout: start countdown when waiting for other user's decision
+  useEffect(() => {
+    // Only start timeout if we're waiting for the other user and we said Yes
+    if (showDecisionUI && myDecision === true && chatData?.chatSession?.status === 'waiting_reveal') {
+      // Start the timeout countdown
+      setDecisionTimeoutSeconds(DECISION_TIMEOUT_SECONDS);
+
+      const interval = setInterval(() => {
+        setDecisionTimeoutSeconds((prev) => {
+          if (prev === undefined || prev <= 1) {
+            clearInterval(interval);
+            // Trigger timeout
+            handleDecisionTimeout({
+              chatSessionId: chatId as Id<"chatSessions">,
+            }).then((result) => {
+              if (result.timedOut) {
+                toast.info('Chat ended - the other user did not respond in time');
+              }
+            }).catch(console.error);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      decisionTimeoutRef.current = interval;
+
+      return () => {
+        clearInterval(interval);
+        decisionTimeoutRef.current = null;
+      };
+    } else {
+      // Clear timeout if conditions no longer apply
+      setDecisionTimeoutSeconds(undefined);
+      if (decisionTimeoutRef.current) {
+        clearInterval(decisionTimeoutRef.current);
+        decisionTimeoutRef.current = null;
+      }
+    }
+  }, [showDecisionUI, myDecision, chatData?.chatSession?.status, chatId, handleDecisionTimeout]);
 
   if (!canAccess) {
     return null;
   }
 
-  // Track if chat has ended to show proper UI
-  const [chatEnded, setChatEnded] = useState(false);
-
-  // Handle chat ended
-  useEffect(() => {
-    if (chatData?.chatSession?.status === 'ended' && !chatEnded) {
-      setChatEnded(true);
-    }
-  }, [chatData?.chatSession?.status, chatEnded]);
+  // Derive chatEnded directly from server state (no useEffect needed)
+  // This is calculated during render, not in an effect
+  const chatEnded = chatData?.chatSession?.status === 'ended';
 
   // Handle decision UI
   useEffect(() => {
@@ -183,10 +244,18 @@ function ChatPage() {
 
   const handleLeaveChat = async () => {
     try {
-      await leaveChat({ chatSessionId: chatId as Id<"chatSessions"> });
-      navigate({ to: '/dashboard' });
+      const result = await leaveChat({ chatSessionId: chatId as Id<"chatSessions"> });
+      // For extended/matched chats, navigate to Chats tab (chat persists there)
+      // For speed dating, navigate to dashboard (chat was ended)
+      if (result.persisted) {
+        navigate({ to: '/matches' });
+      } else {
+        navigate({ to: '/dashboard' });
+      }
     } catch (error) {
       console.error('Error leaving chat:', error);
+      // On error, default to dashboard
+      navigate({ to: '/dashboard' });
     }
   };
 
@@ -241,6 +310,64 @@ function ChatPage() {
     }
   };
 
+  const handleCancelDecision = async () => {
+    if (isCanceling) return;
+
+    setIsCanceling(true);
+    try {
+      await cancelDecision({
+        chatSessionId: chatId as Id<"chatSessions">,
+      });
+      // Reset decision state
+      setMyDecision(null);
+      setIsDeciding(false);
+      toast.success('Decision canceled - you can decide again');
+    } catch (error: any) {
+      console.error('Error canceling decision:', error);
+      toast.error(error?.message || 'Failed to cancel decision');
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
+  const handleImageSelect = async (file: File) => {
+    if (isUploading) return;
+
+    setIsUploading(true);
+    try {
+      // Step 1: Get upload URL
+      const uploadUrl = await generateUploadUrl({
+        chatSessionId: chatId as Id<"chatSessions">,
+      });
+
+      // Step 2: Upload the file
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!result.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const { storageId } = await result.json();
+
+      // Step 3: Send the image message
+      await sendImage({
+        chatSessionId: chatId as Id<"chatSessions">,
+        storageId,
+      });
+
+      toast.success("Image sent!");
+    } catch (error: any) {
+      console.error("Error uploading image:", error);
+      toast.error(error?.message || "Failed to send image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Loading state
   if (!isLoaded || chatData === undefined) {
     return (
@@ -275,10 +402,10 @@ function ChatPage() {
     );
   }
 
-  const { messages, chatSession, otherUser, currentUserId, otherUserIsTyping, skipCount } = chatData;
+  const { messages, chatSession, otherUser, currentUserId, otherUserIsTyping, skipCount, matchedAt } = chatData;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       <ChatHeader
         phase={chatSession.phase}
         skipCount={skipCount}
@@ -300,21 +427,26 @@ function ChatPage() {
           myDecision={myDecision}
           isDeciding={isDeciding}
           onDecision={handleDecision}
+          onCancel={handleCancelDecision}
+          isCanceling={isCanceling}
+          timeoutSeconds={decisionTimeoutSeconds}
         />
-      )}
-
-      {chatSession.phase === 'extended' && otherUser && (
-        <ProfileCard otherUser={otherUser} />
       )}
 
       <ChatMessages
         messages={messages}
         currentUserId={currentUserId}
+        profileRevealCard={
+          chatSession.phase === 'extended' && otherUser ? (
+            <InlineProfileCard otherUser={otherUser} />
+          ) : undefined
+        }
+        profileRevealedAt={matchedAt ?? undefined}
       />
 
       {/* Typing Indicator */}
       {otherUserIsTyping && !chatEnded && (
-        <div className="px-6 py-2 bg-card/80 border-t border-border backdrop-blur">
+        <div className="shrink-0 px-6 py-2 bg-card/80 border-t border-border backdrop-blur">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="flex gap-1">
               <span className="animate-bounce animation-delay-0">●</span>
@@ -330,8 +462,11 @@ function ChatPage() {
         newMessage={newMessage}
         chatEnded={chatEnded}
         isSending={isSending}
+        isExtended={chatSession.phase === 'extended'}
+        isUploading={isUploading}
         onTypingChange={handleTypingChange}
         onSendMessage={handleSendMessage}
+        onImageSelect={handleImageSelect}
       />
     </div>
   );

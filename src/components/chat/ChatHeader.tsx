@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Clock } from "lucide-react";
+import { LogOut, Clock, ArrowLeft } from "lucide-react";
 
 interface ChatHeaderProps {
   phase: string;
@@ -18,11 +18,13 @@ export function ChatHeader({
   onLeave,
   onSkip,
 }: ChatHeaderProps) {
+  const isExtended = phase === 'extended';
+
   return (
-    <div className="sticky top-0 z-50 border-b border-border px-6 py-4 flex justify-between items-center bg-card/80 backdrop-blur">
+    <div className="shrink-0 sticky top-0 z-50 border-b border-border px-6 py-4 flex justify-between items-center bg-card/80 backdrop-blur">
       <div className="flex items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">
-          {phase === 'extended' ? 'Matched Chat' : 'Speed Dating'}
+          {isExtended ? 'Matched Chat' : 'Speed Dating'}
         </h1>
         <Button
           variant="ghost"
@@ -30,8 +32,17 @@ export function ChatHeader({
           onClick={onLeave}
           className="gap-2 text-muted-foreground hover:text-foreground"
         >
-          <LogOut className="h-4 w-4" />
-          Leave
+          {isExtended ? (
+            <>
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </>
+          ) : (
+            <>
+              <LogOut className="h-4 w-4" />
+              Leave
+            </>
+          )}
         </Button>
       </div>
       {phase === 'speed_dating' && (

@@ -1,13 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { Heart, X } from "lucide-react";
+import { Heart, X, Undo2 } from "lucide-react";
 
 interface DecisionOverlayProps {
   myDecision: boolean | null;
   isDeciding: boolean;
   onDecision: (wantsToContinue: boolean) => void;
+  onCancel?: () => void;
+  isCanceling?: boolean;
+  timeoutSeconds?: number; // Seconds remaining until timeout
 }
 
-export function DecisionOverlay({ myDecision, isDeciding, onDecision }: DecisionOverlayProps) {
+export function DecisionOverlay({
+  myDecision,
+  isDeciding,
+  onDecision,
+  onCancel,
+  isCanceling,
+  timeoutSeconds,
+}: DecisionOverlayProps) {
   return (
     <div className="absolute inset-0 bg-background/80 backdrop-blur flex items-center justify-center z-50">
       <div className="bg-card border border-border shadow-soft-lg p-8 max-w-md w-full mx-4 rounded-3xl">
@@ -46,9 +56,31 @@ export function DecisionOverlay({ myDecision, isDeciding, onDecision }: Decision
             <p className="text-muted-foreground">
               Waiting for the other person to decide...
             </p>
+
+            {/* Timeout countdown */}
+            {timeoutSeconds !== undefined && timeoutSeconds > 0 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Timing out in {timeoutSeconds}s if no response
+              </p>
+            )}
+
             <div className="mt-6">
               <div className="animate-pulse text-4xl">⏳</div>
             </div>
+
+            {/* Cancel/change decision button - only show if user said Yes */}
+            {myDecision && onCancel && (
+              <Button
+                onClick={onCancel}
+                variant="ghost"
+                size="sm"
+                className="mt-6 gap-2 text-muted-foreground hover:text-foreground"
+                disabled={isCanceling}
+              >
+                <Undo2 className="h-4 w-4" />
+                {isCanceling ? 'Canceling...' : 'Change my mind'}
+              </Button>
+            )}
           </div>
         )}
       </div>

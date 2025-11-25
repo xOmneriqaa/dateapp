@@ -22,8 +22,9 @@ export const join = mutation({
       );
     }
 
-    // Check if user already has an active session - prevent accidental rejoining
-    const existingActiveSession = await ctx.db
+    // Check if user already has an active SPEED DATING session - prevent accidental rejoining
+    // Users with extended/matched chats can still look for new matches
+    const existingSpeedDatingSession = await ctx.db
       .query("chatSessions")
       .filter((q) =>
         q.and(
@@ -31,14 +32,15 @@ export const join = mutation({
             q.eq(q.field("user1Id"), user._id),
             q.eq(q.field("user2Id"), user._id)
           ),
-          q.eq(q.field("status"), "active")
+          q.eq(q.field("status"), "active"),
+          q.eq(q.field("phase"), "speed_dating")
         )
       )
       .first();
 
-    if (existingActiveSession) {
+    if (existingSpeedDatingSession) {
       throw new Error(
-        "You are already in an active chat session. Please leave your current chat before finding a new match."
+        "You are already in an active speed dating session. Please leave your current chat before finding a new match."
       );
     }
 
@@ -78,9 +80,9 @@ export const join = mutation({
       // This prevents other users from matching with the same person
       await ctx.db.patch(matchedUser._id, { isInQueue: false });
 
-      // VERIFY-SECOND: Double-check that matched user doesn't already have an active session
+      // VERIFY-SECOND: Double-check that matched user doesn't already have an active speed dating session
       // This handles race conditions where multiple users tried to match simultaneously
-      const matchedUserActiveSession = await ctx.db
+      const matchedUserSpeedDatingSession = await ctx.db
         .query("chatSessions")
         .filter((q) =>
           q.and(
@@ -88,12 +90,13 @@ export const join = mutation({
               q.eq(q.field("user1Id"), matchedUser._id),
               q.eq(q.field("user2Id"), matchedUser._id)
             ),
-            q.eq(q.field("status"), "active")
+            q.eq(q.field("status"), "active"),
+            q.eq(q.field("phase"), "speed_dating")
           )
         )
         .first();
 
-      if (matchedUserActiveSession) {
+      if (matchedUserSpeedDatingSession) {
         // Matched user already in a session! Put current user in queue to try again
         await ctx.db.patch(user._id, { isInQueue: true });
 
@@ -179,8 +182,9 @@ export const status = query({
       };
     }
 
-    // Check if user has an active session
-    const activeSession = await ctx.db
+    // Check if user has an active SPEED DATING session (not extended/matched chats)
+    // Extended chats persist and should be accessed from Chats tab, not auto-redirect
+    const activeSpeedDatingSession = await ctx.db
       .query("chatSessions")
       .filter((q) =>
         q.and(
@@ -188,17 +192,18 @@ export const status = query({
             q.eq(q.field("user1Id"), user._id),
             q.eq(q.field("user2Id"), user._id)
           ),
-          q.eq(q.field("status"), "active")
+          q.eq(q.field("status"), "active"),
+          q.eq(q.field("phase"), "speed_dating")
         )
       )
       .first();
 
-    if (activeSession) {
+    if (activeSpeedDatingSession) {
       return {
         userExists: true,
         inQueue: false,
         matched: true,
-        chatSessionId: activeSession._id,
+        chatSessionId: activeSpeedDatingSession._id,
       };
     }
 
