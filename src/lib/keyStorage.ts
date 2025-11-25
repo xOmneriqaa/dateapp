@@ -124,6 +124,29 @@ export async function hasKeys(clerkId: string): Promise<boolean> {
 }
 
 /**
+ * Get keys from IndexedDB, or generate and store them if not found
+ * Uses deterministic key generation from user ID
+ */
+export async function getOrCreateKeys(
+  clerkId: string
+): Promise<{ publicKey: string; privateKey: string }> {
+  // Try to get existing keys first
+  const existingKeys = await getKeys(clerkId);
+  if (existingKeys) {
+    return existingKeys;
+  }
+
+  // Generate deterministic keys from user ID
+  const { generateKeyPair } = await import("@/lib/encryption");
+  const newKeys = await generateKeyPair(clerkId);
+
+  // Store in IndexedDB for future use
+  await storeKeys(clerkId, newKeys.publicKey, newKeys.privateKey);
+
+  return newKeys;
+}
+
+/**
  * Delete a user's encryption keys (for logout or account deletion)
  */
 export async function deleteKeys(clerkId: string): Promise<void> {

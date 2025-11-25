@@ -4,7 +4,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { getSharedSecret, decryptMessage } from "@/lib/encryption";
-import { getKeys } from "@/lib/keyStorage";
+import { getOrCreateKeys } from "@/lib/keyStorage";
 import { useUser } from "@clerk/tanstack-react-start";
 
 interface ChatListCardProps {
@@ -63,11 +63,8 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
 
     const decryptPreview = async () => {
       try {
-        // Get our private key from IndexedDB
-        const keys = await getKeys(user.id);
-        if (!keys?.privateKey) {
-          return;
-        }
+        // Get or create our keys (deterministic from user ID)
+        const keys = await getOrCreateKeys(user.id);
 
         // Derive shared secret
         const sharedSecret = await getSharedSecret(
