@@ -23,10 +23,7 @@ import {
 import {
   getKeys,
   storeKeys,
-  hasKeys,
   deleteKeys,
-  exportKeysAsBackup,
-  importKeysFromBackup,
 } from "@/lib/keyStorage";
 
 interface UseEncryptionOptions {
@@ -71,8 +68,8 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
 
   /**
    * Initialize encryption for the current user
-   * - Checks for existing keys in IndexedDB
-   * - Generates new keys if needed
+   * - Generates deterministic keys from user ID (same keys on all devices)
+   * - Caches in IndexedDB for performance
    * - Uploads public key to Convex if not already there
    */
   const initializeEncryption = useCallback(async () => {
@@ -83,56 +80,33 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
     try {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      // Check for existing local keys
-      const existingKeys = await getKeys(user.id);
+      // Check for existing local keys first (cache)
+      let keys = await getKeys(user.id);
 
-      if (existingKeys) {
-        // Keys exist locally
-        privateKeyRef.current = existingKeys.privateKey;
-        setState((prev) => ({ ...prev, hasLocalKeys: true }));
+      if (!keys) {
+        // Generate deterministic keys from user ID
+        // Same user ID = same keys on all devices
+        const newKeyPair = await generateKeyPair(user.id);
 
-        // Check if public key matches what's on server
-        if (encryptionStatus?.publicKey !== existingKeys.publicKey) {
-          // Upload our public key if server doesn't have it or has a different one
-          await updatePublicKey({ publicKey: existingKeys.publicKey });
-        }
-
-        setState((prev) => ({
-          ...prev,
-          isReady: true,
-          isLoading: false,
-          hasServerKey: true,
-        }));
-      } else if (encryptionStatus?.publicKey) {
-        // No local keys BUT server has a key = user is on a new device
-        // DON'T auto-generate new keys - this would break existing encrypted messages
-        // User must either import backup or explicitly generate new keys
-        setState((prev) => ({
-          ...prev,
-          isReady: false, // Not ready until user restores or generates keys
-          isLoading: false,
-          hasLocalKeys: false,
-          hasServerKey: true, // Server has a key (from another device)
-        }));
-      } else {
-        // No local keys AND no server key = first time user, generate new keys
-        const newKeyPair = await generateKeyPair();
-
-        // Store in IndexedDB
+        // Store in IndexedDB as cache
         await storeKeys(user.id, newKeyPair.publicKey, newKeyPair.privateKey);
-        privateKeyRef.current = newKeyPair.privateKey;
-
-        // Upload public key to Convex
-        await updatePublicKey({ publicKey: newKeyPair.publicKey });
-
-        setState((prev) => ({
-          ...prev,
-          isReady: true,
-          isLoading: false,
-          hasLocalKeys: true,
-          hasServerKey: true,
-        }));
+        keys = newKeyPair;
       }
+
+      privateKeyRef.current = keys.privateKey;
+      setState((prev) => ({ ...prev, hasLocalKeys: true }));
+
+      // Upload public key to server if not already there
+      if (encryptionStatus?.publicKey !== keys.publicKey) {
+        await updatePublicKey({ publicKey: keys.publicKey });
+      }
+
+      setState((prev) => ({
+        ...prev,
+        isReady: true,
+        isLoading: false,
+        hasServerKey: true,
+      }));
 
       initializedRef.current = true;
     } catch (error) {
@@ -244,45 +218,6 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
     });
   }, [user?.id]);
 
-  /**
-   * Check if user needs to restore keys from backup
-   * True when: server has a public key for this user, but no local keys exist
-   */
-  const needsKeyRestore = !state.hasLocalKeys && encryptionStatus?.publicKey != null;
-
-  /**
-   * Reinitialize encryption after keys are restored from backup
-   */
-  const refreshAfterKeyRestore = useCallback(async () => {
-    initializedRef.current = false;
-    await initializeEncryption();
-  }, [initializeEncryption]);
-
-  /**
-   * Export keys as backup JSON string
-   */
-  const exportKeys = useCallback(async (): Promise<string | null> => {
-    if (!user?.id) return null;
-    return exportKeysAsBackup(user.id);
-  }, [user?.id]);
-
-  /**
-   * Import keys from backup JSON string
-   */
-  const importKeys = useCallback(async (backupJson: string): Promise<boolean> => {
-    if (!user?.id) return false;
-
-    const result = await importKeysFromBackup(user.id, backupJson);
-    if (result) {
-      // Upload the restored public key to server
-      await updatePublicKey({ publicKey: result.publicKey });
-      // Reinitialize encryption state
-      await refreshAfterKeyRestore();
-      return true;
-    }
-    return false;
-  }, [user?.id, updatePublicKey, refreshAfterKeyRestore]);
-
   return {
     ...state,
     isE2EEEnabled, // Derived during render, not from state
@@ -291,12 +226,5 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
     clearEncryption,
     // Expose for components that need to check other user's key status
     otherUserHasKey: chatEncryptionKeys?.otherUserPublicKey != null,
-    // Key backup/restore
-    needsKeyRestore,
-    refreshAfterKeyRestore,
-    exportKeys,
-    importKeys,
-    // User ID for key backup component
-    clerkId: user?.id,
   };
 }

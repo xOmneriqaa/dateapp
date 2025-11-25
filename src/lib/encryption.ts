@@ -23,14 +23,29 @@ export async function getSodium(): Promise<typeof _sodium> {
 }
 
 /**
- * Generate a new X25519 keypair for key exchange
+ * Generate a deterministic X25519 keypair from user ID
+ * Same user ID = same keys on all devices (no backup needed)
  */
-export async function generateKeyPair(): Promise<{
+export async function generateKeyPair(userId?: string): Promise<{
   publicKey: string; // Base64 encoded
   privateKey: string; // Base64 encoded
 }> {
   const sodium = await getSodium();
-  const keyPair = sodium.crypto_box_keypair();
+
+  let keyPair;
+
+  if (userId) {
+    // Deterministic key generation from user ID
+    // Use BLAKE2b hash to create a 32-byte seed from user ID
+    const seed = sodium.crypto_generichash(
+      sodium.crypto_box_SEEDBYTES,
+      sodium.from_string(userId + "_dateapp_e2ee_v1")
+    );
+    keyPair = sodium.crypto_box_seed_keypair(seed);
+  } else {
+    // Fallback to random generation (legacy)
+    keyPair = sodium.crypto_box_keypair();
+  }
 
   return {
     publicKey: sodium.to_base64(

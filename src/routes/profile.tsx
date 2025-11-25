@@ -7,10 +7,8 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ProfilePhotoSection } from '@/components/profile/ProfilePhotoSection';
 import { ProfileFormFields } from '@/components/profile/ProfileFormFields';
-import { KeyBackupRestore } from '@/components/encryption/KeyBackupRestore';
-import { UserRoundPen, Shield } from 'lucide-react';
+import { UserRoundPen } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { useEncryption } from '@/hooks/useEncryption';
 import { validateProfileForm, type Gender, type GenderPreference } from '@/lib/validations';
 
 export const Route = createFileRoute('/profile')({
@@ -25,9 +23,6 @@ function ProfilePage() {
   const updateProfile = useMutation(api.profile.update);
   const generateUploadUrl = useMutation(api.profile.generateUploadUrl);
   const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
-
-  // E2EE key management
-  const { hasLocalKeys, hasServerKey, refreshAfterKeyRestore, clerkId } = useEncryption();
 
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
@@ -170,27 +165,6 @@ function ProfilePage() {
               bio={bio}
               setBio={setBio}
             />
-
-            {/* Encryption Keys Section */}
-            {clerkId && (
-              <div className="pt-6 border-t-2 border-border space-y-4">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold">Encryption Keys</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Backup your encryption keys to read messages on other devices.
-                  Your keys are stored locally and never sent to our servers.
-                </p>
-                <KeyBackupRestore
-                  clerkId={clerkId}
-                  hasLocalKeys={hasLocalKeys}
-                  serverHasKey={hasServerKey}
-                  onKeysRestored={refreshAfterKeyRestore}
-                  variant="compact"
-                />
-              </div>
-            )}
 
             <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-border">
               <Button
