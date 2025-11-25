@@ -55,10 +55,6 @@ function Dashboard() {
     }
   };
 
-  if (!canAccess) {
-    return null;
-  }
-
   // Automatically redirect when matched (reactive!)
   useEffect(() => {
     if (queueStatus?.matched && queueStatus.chatSessionId) {
@@ -68,6 +64,10 @@ function Dashboard() {
       });
     }
   }, [queueStatus, navigate]);
+
+  if (!canAccess) {
+    return null;
+  }
 
   if (isLoadingState) {
     return (
