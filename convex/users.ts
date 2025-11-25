@@ -21,51 +21,6 @@ export const getCurrentUser = query({
 });
 
 /**
- * Get or create current user (auto-creates if doesn't exist)
- * Used when a user logs in but hasn't been synced via webhook yet
- */
-export const getOrCreateCurrentUser = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-
-    // Try to find existing user
-    let user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    // If user doesn't exist, create them from Clerk identity
-    if (!user) {
-      const now = Date.now();
-
-      // Extract name with proper type handling (prioritize username)
-      const username = typeof identity.username === "string" ? identity.username : undefined;
-      const givenName = typeof identity.givenName === "string" ? identity.givenName : undefined;
-      const fullName = typeof identity.name === "string" ? identity.name : undefined;
-      const nickname = typeof identity.nickname === "string" ? identity.nickname : undefined;
-
-      const userId = await ctx.db.insert("users", {
-        clerkId: identity.subject,
-        email: identity.email || "",
-        name: username || givenName || fullName || nickname || "User",
-        image: identity.pictureUrl,
-        emailVerified: identity.emailVerified || false,
-        isInQueue: false,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      user = await ctx.db.get(userId);
-      if (!user) throw new Error("Failed to create user");
-    }
-
-    return user;
-  },
-});
-
-/**
  * Create or update user from Clerk webhook
  * This is called internally when a user signs up via Clerk
  */
@@ -133,6 +88,18 @@ export const deleteFromClerk = internalMutation({
 
     console.log(`[deleteFromClerk] Found user: ${user.name} (${user._id}), cleaning up related data...`);
 
+    // 0. Delete user's photos from storage
+    if (user.photoStorageIds && user.photoStorageIds.length > 0) {
+      for (const storageId of user.photoStorageIds) {
+        try {
+          await ctx.storage.delete(storageId);
+        } catch (error) {
+          console.log(`[deleteFromClerk] Failed to delete photo ${storageId}:`, error);
+        }
+      }
+      console.log(`[deleteFromClerk] Deleted ${user.photoStorageIds.length} photos from storage`);
+    }
+
     // 1. Delete all messages sent by this user
     const messages = await ctx.db
       .query("messages")
@@ -173,7 +140,22 @@ export const deleteFromClerk = internalMutation({
     }
     console.log(`[deleteFromClerk] Deleted ${allSessions.length} chat sessions`);
 
-    // 4. Finally, delete the user
+    // 4. Delete all chat requests involving this user
+    const requestsFrom = await ctx.db
+      .query("chatRequests")
+      .withIndex("by_from_user", (q) => q.eq("fromUserId", user._id))
+      .collect();
+    const requestsTo = await ctx.db
+      .query("chatRequests")
+      .withIndex("by_to_user", (q) => q.eq("toUserId", user._id))
+      .collect();
+    const allRequests = [...requestsFrom, ...requestsTo];
+    for (const request of allRequests) {
+      await ctx.db.delete(request._id);
+    }
+    console.log(`[deleteFromClerk] Deleted ${allRequests.length} chat requests`);
+
+    // 5. Finally, delete the user
     await ctx.db.delete(user._id);
 
     console.log(`[deleteFromClerk] ✅ Successfully deleted user ${args.clerkId} and all related data from Convex`);

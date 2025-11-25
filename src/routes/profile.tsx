@@ -64,6 +64,11 @@ function ProfilePage() {
       return;
     }
 
+    // Revoke previous object URL to prevent memory leak
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };

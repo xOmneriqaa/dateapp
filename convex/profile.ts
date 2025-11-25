@@ -80,12 +80,19 @@ export const update = mutation({
       // Get the storage URL
       const photoUrl = await ctx.storage.getUrl(args.photoStorageId);
       if (photoUrl) {
-        // Delete old photo if exists
-        if (user.photos && user.photos.length > 0) {
-          // Note: In a production app, you'd want to track storage IDs to delete old files
-          // For now, we just replace the URL
+        // Delete old photos from storage if they exist
+        if (user.photoStorageIds && user.photoStorageIds.length > 0) {
+          for (const oldStorageId of user.photoStorageIds) {
+            try {
+              await ctx.storage.delete(oldStorageId);
+            } catch (error) {
+              // Storage file may already be deleted, continue silently
+              console.log(`Failed to delete old photo ${oldStorageId}:`, error);
+            }
+          }
         }
         updateData.photos = [photoUrl];
+        updateData.photoStorageIds = [args.photoStorageId];
       }
     }
 

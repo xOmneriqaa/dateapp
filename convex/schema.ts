@@ -22,6 +22,7 @@ export default defineSchema({
     genderPreference: v.optional(v.union(v.literal("male"), v.literal("female"), v.literal("both"))),
     bio: v.optional(v.string()),
     photos: v.optional(v.array(v.string())),
+    photoStorageIds: v.optional(v.array(v.id("_storage"))), // Track storage IDs for cleanup
     isInQueue: v.boolean(),
 
     createdAt: v.number(),

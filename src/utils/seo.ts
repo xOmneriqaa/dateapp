@@ -9,25 +9,31 @@ export const seo = ({
   image?: string
   keywords?: string
 }) => {
-  const tags = [
+  const tags: Array<{ title?: string; name?: string; content?: string }> = [
     { title },
-    { name: 'description', content: description },
-    { name: 'keywords', content: keywords },
     { name: 'twitter:title', content: title },
-    { name: 'twitter:description', content: description },
     { name: 'twitter:creator', content: '@tannerlinsley' },
     { name: 'twitter:site', content: '@tannerlinsley' },
     { name: 'og:type', content: 'website' },
     { name: 'og:title', content: title },
-    { name: 'og:description', content: description },
-    ...(image
-      ? [
-          { name: 'twitter:image', content: image },
-          { name: 'twitter:card', content: 'summary_large_image' },
-          { name: 'og:image', content: image },
-        ]
-      : []),
   ]
+
+  // Only add tags with defined content to avoid React key warnings
+  if (description) {
+    tags.push({ name: 'description', content: description })
+    tags.push({ name: 'twitter:description', content: description })
+    tags.push({ name: 'og:description', content: description })
+  }
+
+  if (keywords) {
+    tags.push({ name: 'keywords', content: keywords })
+  }
+
+  if (image) {
+    tags.push({ name: 'twitter:image', content: image })
+    tags.push({ name: 'twitter:card', content: 'summary_large_image' })
+    tags.push({ name: 'og:image', content: image })
+  }
 
   return tags
 }
