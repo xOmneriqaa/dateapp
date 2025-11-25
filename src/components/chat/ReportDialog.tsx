@@ -5,6 +5,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Flag, X } from "lucide-react";
+import { ReportMessageSchema, type ReportReason } from "@/lib/validations";
 
 interface ReportDialogProps {
   isOpen: boolean;
@@ -38,8 +39,16 @@ export function ReportDialog({
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
-    if (!reason) {
-      toast.error("Please select a reason");
+    // Validate with Zod schema
+    const validation = ReportMessageSchema.safeParse({
+      decryptedContent: messageContent,
+      reason,
+      details: details.trim() || undefined,
+    });
+
+    if (!validation.success) {
+      const errorMessage = validation.error.issues[0]?.message || "Invalid report data";
+      toast.error(errorMessage);
       return;
     }
 
@@ -48,16 +57,17 @@ export function ReportDialog({
       await reportMessage({
         messageId,
         chatSessionId,
-        decryptedContent: messageContent,
-        reason,
-        details: details.trim() || undefined,
+        decryptedContent: validation.data.decryptedContent,
+        reason: validation.data.reason as ReportReason,
+        details: validation.data.details,
       });
 
       toast.success("Report submitted. Thank you for helping keep our community safe.");
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to submit report:", error);
-      toast.error(error?.message || "Failed to submit report");
+      const message = error instanceof Error ? error.message : "Failed to submit report";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

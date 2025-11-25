@@ -37,9 +37,10 @@ function NotificationsPage() {
         to: '/chat/$chatId',
         params: { chatId: result.chatSessionId },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error accepting request:', error);
-      toast.error(error?.message || 'Failed to accept request');
+      const message = error instanceof Error ? error.message : 'Failed to accept request';
+      toast.error(message);
     }
   };
 
@@ -47,9 +48,10 @@ function NotificationsPage() {
     try {
       await declineRequest({ requestId });
       toast.success('Chat request declined');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error declining request:', error);
-      toast.error(error?.message || 'Failed to decline request');
+      const message = error instanceof Error ? error.message : 'Failed to decline request';
+      toast.error(message);
     }
   };
 

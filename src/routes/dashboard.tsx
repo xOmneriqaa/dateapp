@@ -100,10 +100,11 @@ function Dashboard() {
         });
       }
       // If not matched, user is added to queue and queueStatus query will update automatically
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error joining queue:', error);
       // Show user-friendly error message
-      toast.error(error?.message || 'Failed to join queue. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to join queue. Please try again.';
+      toast.error(message);
     } finally {
       setIsJoining(false);
     }

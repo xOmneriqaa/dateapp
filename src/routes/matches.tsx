@@ -24,9 +24,10 @@ function ChatsPage() {
     try {
       await cutConnection({ matchId });
       toast.success('Chat ended');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cutting connection:', error);
-      toast.error(error?.message || 'Failed to end chat');
+      const message = error instanceof Error ? error.message : 'Failed to end chat';
+      toast.error(message);
     }
   };
 

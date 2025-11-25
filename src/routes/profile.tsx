@@ -9,6 +9,7 @@ import { ProfilePhotoSection } from '@/components/profile/ProfilePhotoSection';
 import { ProfileFormFields } from '@/components/profile/ProfileFormFields';
 import { UserRoundPen } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { validateProfileForm, type Gender, type GenderPreference } from '@/lib/validations';
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -74,6 +75,15 @@ function ProfilePage() {
   };
 
   const handleSave = async () => {
+    // Validate form data with Zod
+    const validation = validateProfileForm({ age, gender, genderPreference, bio });
+    if (!validation.success) {
+      toast.error(validation.error);
+      return;
+    }
+
+    const { data: validatedData } = validation;
+
     try {
       setIsSaving(true);
 
@@ -99,20 +109,21 @@ function ProfilePage() {
         setIsUploading(false);
       }
 
-      // Update profile
+      // Update profile with validated data (properly typed, no 'as any')
       await updateProfile({
-        age: age ? parseInt(age) : undefined,
-        gender: gender as any,
-        genderPreference: genderPreference as any,
-        bio: bio || undefined,
+        age: validatedData.age,
+        gender: validatedData.gender as Gender,
+        genderPreference: validatedData.genderPreference as GenderPreference,
+        bio: validatedData.bio || undefined,
         photoStorageId,
       });
 
       toast.success('Profile updated successfully!');
       navigate({ to: '/dashboard' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating profile:', error);
-      toast.error(error?.message || 'Failed to update profile');
+      const message = error instanceof Error ? error.message : 'Failed to update profile';
+      toast.error(message);
     } finally {
       setIsSaving(false);
       setIsUploading(false);

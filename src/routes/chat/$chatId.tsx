@@ -15,6 +15,7 @@ import { ChatEndedOverlay } from '@/components/chat/ChatEndedOverlay';
 import { InlineProfileCard } from '@/components/chat/InlineProfileCard';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useEncryption } from '@/hooks/useEncryption';
+import { MessageSchema } from '@/lib/validations';
 
 // Decision timeout: 30 seconds to respond after other person decides
 const DECISION_TIMEOUT_SECONDS = 30;
@@ -230,9 +231,11 @@ function ChatPage() {
     e.preventDefault();
     if (!newMessage.trim() || isSending) return;
 
-    // Validate message length before encryption
-    if (newMessage.trim().length > 2000) {
-      toast.error('Message too long (max 2000 characters)');
+    // Validate message with Zod schema
+    const validation = MessageSchema.safeParse({ content: newMessage.trim() });
+    if (!validation.success) {
+      const errorMessage = validation.error.issues[0]?.message || 'Invalid message';
+      toast.error(errorMessage);
       return;
     }
 
@@ -359,9 +362,10 @@ function ChatPage() {
       setMyDecision(null);
       setIsDeciding(false);
       toast.success('Decision canceled - you can decide again');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error canceling decision:', error);
-      toast.error(error?.message || 'Failed to cancel decision');
+      const message = error instanceof Error ? error.message : 'Failed to cancel decision';
+      toast.error(message);
     } finally {
       setIsCanceling(false);
     }
@@ -397,9 +401,10 @@ function ChatPage() {
       });
 
       toast.success("Image sent!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error uploading image:", error);
-      toast.error(error?.message || "Failed to send image");
+      const message = error instanceof Error ? error.message : "Failed to send image";
+      toast.error(message);
     } finally {
       setIsUploading(false);
     }

@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Send, ImagePlus, X, Loader2 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
+import { ImageUploadSchema } from "@/lib/validations";
 
 interface ChatInputProps {
   newMessage: string;
@@ -42,15 +43,11 @@ export function ChatInput({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be less than 5MB");
+    // Validate with Zod schema
+    const result = ImageUploadSchema.safeParse({ file });
+    if (!result.success) {
+      const errorMessage = result.error.issues[0]?.message || "Invalid file";
+      toast.error(errorMessage);
       return;
     }
 
