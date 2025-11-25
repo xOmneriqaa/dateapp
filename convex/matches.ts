@@ -21,6 +21,7 @@ export const list = query({
     if (!user) throw new Error("User not found");
 
     // Get ACTIVE matches where user is involved (limited for performance)
+    // isActive: true or undefined (legacy matches without the field are considered active)
     const limit = args.limit ?? 50;
     const matches = await ctx.db
       .query("matches")
@@ -30,7 +31,7 @@ export const list = query({
             q.eq(q.field("user1Id"), user._id),
             q.eq(q.field("user2Id"), user._id)
           ),
-          q.eq(q.field("isActive"), true)
+          q.neq(q.field("isActive"), false) // true or undefined = active
         )
       )
       .order("desc")

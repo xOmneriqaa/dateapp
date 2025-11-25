@@ -88,8 +88,9 @@ export const list = query({
       .first();
 
     // Check if chat was "cut" by the other user (for kick-out detection)
+    // Note: isActive is explicitly false (not undefined) when connection is cut
     let wasCutByOtherUser = false;
-    if (match && !match.isActive && match.endedBy) {
+    if (match && match.isActive === false && match.endedBy) {
       wasCutByOtherUser = match.endedBy !== user._id;
     }
 

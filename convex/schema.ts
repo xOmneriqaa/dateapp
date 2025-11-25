@@ -81,7 +81,7 @@ export default defineSchema({
     chatSessionId: v.id("chatSessions"),
     matchedAt: v.number(),
     // Persistent chat fields
-    isActive: v.boolean(), // false = connection was cut
+    isActive: v.optional(v.boolean()), // false = connection was cut, undefined treated as true (legacy)
     lastMessageAt: v.optional(v.number()), // for sorting chats by recency
     // Track who cut the connection (for "user left" message)
     endedBy: v.optional(v.id("users")),
