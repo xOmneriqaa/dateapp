@@ -66,7 +66,6 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
         // Get our private key from IndexedDB
         const keys = await getKeys(user.id);
         if (!keys?.privateKey) {
-          console.warn("[ChatListCard] No private key found");
           return;
         }
 
@@ -90,8 +89,8 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
           const preview = plaintext.length > 50 ? plaintext.slice(0, 50) + "..." : plaintext;
           setDecryptedPreview(preview);
         }
-      } catch (error) {
-        console.error("[ChatListCard] Failed to decrypt preview:", error);
+      } catch {
+        // Silently fail - preview will show "Encrypted message"
       }
     };
 

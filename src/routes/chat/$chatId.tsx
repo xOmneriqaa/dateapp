@@ -247,14 +247,6 @@ function ChatPage() {
       // Encrypt ALL messages when E2EE is ready (both speed_dating and extended phases)
       const shouldEncrypt = isE2EEEnabled && encryptionReady;
 
-      // Debug logging for encryption status
-      console.log('[E2EE] Encryption check:', {
-        phase: chatData?.chatSession?.phase,
-        isE2EEEnabled,
-        encryptionReady,
-        shouldEncrypt,
-      });
-
       if (shouldEncrypt) {
         const encrypted = await encrypt(newMessage.trim());
         if (encrypted) {

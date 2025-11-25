@@ -74,12 +74,6 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
    * - Uploads public key to Convex if not already there
    */
   const initializeEncryption = useCallback(async () => {
-    console.log("[E2EE] initializeEncryption called:", {
-      userId: user?.id,
-      initializingRef: initializingRef.current,
-      initializedRef: initializedRef.current,
-    });
-
     if (!user?.id || initializingRef.current) return;
 
     initializingRef.current = true;
@@ -89,7 +83,6 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
 
       // Check for existing local keys
       const existingKeys = await getKeys(user.id);
-      console.log("[E2EE] Keys from IndexedDB:", existingKeys ? "found" : "not found");
 
       if (existingKeys) {
         // Keys exist locally
@@ -189,26 +182,15 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
    */
   const decrypt = useCallback(
     async (ciphertext: string, nonce: string): Promise<string | null> => {
-      // Debug logging
-      console.log("[E2EE] Decrypt attempt:", {
-        hasPrivateKey: !!privateKeyRef.current,
-        isE2EEReady: chatEncryptionKeys?.isE2EEReady,
-        hasOtherUserKey: !!chatEncryptionKeys?.otherUserPublicKey,
-        stateIsReady: state.isReady,
-      });
-
       if (!privateKeyRef.current) {
-        console.error("[E2EE] No private key loaded!");
         return null;
       }
 
       if (!chatEncryptionKeys?.isE2EEReady) {
-        console.error("[E2EE] E2EE not ready:", chatEncryptionKeys);
         return null;
       }
 
       if (!chatEncryptionKeys.otherUserPublicKey) {
-        console.warn("[E2EE] Cannot decrypt: other user has no public key");
         return null;
       }
 
@@ -221,8 +203,7 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
         );
 
         return await decryptMessage(ciphertext, nonce, sharedSecret);
-      } catch (error) {
-        console.error("[E2EE] Decryption failed:", error);
+      } catch {
         return null;
       }
     },
