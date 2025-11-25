@@ -76,6 +76,13 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const [showDevtools, setShowDevtools] = React.useState(false)
 
+  // React Grab - Hold ⌘C and click any element to provide visual context to AI assistants
+  React.useEffect(() => {
+    if (import.meta.env.DEV) {
+      import('react-grab')
+    }
+  }, [])
+
   React.useEffect(() => {
     const devtoolsFlag = import.meta.env['VITE_ENABLE_ROUTER_DEVTOOLS']
 

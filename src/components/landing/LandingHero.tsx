@@ -41,19 +41,19 @@ export function LandingHero() {
         </div>
 
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          <div className="space-y-2 fade-in">
+          <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">Anonymous</h3>
             <p className="text-sm text-muted-foreground">
               No profiles until you both match
             </p>
           </div>
-          <div className="space-y-2 fade-in" style={{ animationDelay: '100ms' }}>
+          <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">Timed</h3>
             <p className="text-sm text-muted-foreground">
               15 minutes to see if there's chemistry
             </p>
           </div>
-          <div className="space-y-2 fade-in" style={{ animationDelay: '200ms' }}>
+          <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">Real</h3>
             <p className="text-sm text-muted-foreground">
               Genuine conversations, no swiping
