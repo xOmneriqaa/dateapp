@@ -1,8 +1,11 @@
-import { User, Scissors, Loader2 } from "lucide-react";
+import { User, Scissors, Loader2, Lock } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Id } from "../../../convex/_generated/dataModel";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { getSharedSecret, decryptMessage } from "@/lib/encryption";
+import { getKeys } from "@/lib/keyStorage";
+import { useUser } from "@clerk/tanstack-react-start";
 
 interface ChatListCardProps {
   match: {
@@ -10,10 +13,15 @@ interface ChatListCardProps {
     matchedAt: number;
     lastMessageAt?: number;
     chatSessionId: string;
+    currentUserId: Id<"users">;
     lastMessage?: {
       content: string;
       createdAt: number;
       isFromMe: boolean;
+      // E2EE fields
+      isEncrypted?: boolean;
+      encryptedContent?: string;
+      nonce?: string;
     } | null;
     otherUser?: {
       _id: Id<"users">;
@@ -22,6 +30,7 @@ interface ChatListCardProps {
       gender?: string;
       bio?: string;
       photos?: string[];
+      publicKey?: string;
     } | null;
   };
   onCutConnection: (matchId: Id<"matches">) => Promise<void>;
@@ -30,6 +39,76 @@ interface ChatListCardProps {
 export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
   const [showModal, setShowModal] = useState(false);
   const [isCutting, setIsCutting] = useState(false);
+  const [decryptedPreview, setDecryptedPreview] = useState<string | null>(null);
+  const { user } = useUser();
+  const decryptAttemptedRef = useRef<string | null>(null);
+
+  // Decrypt message preview if encrypted
+  useEffect(() => {
+    const lastMsg = match.lastMessage;
+    if (!lastMsg?.isEncrypted || !lastMsg.encryptedContent || !lastMsg.nonce) {
+      return;
+    }
+
+    if (!match.otherUser?.publicKey || !user?.id) {
+      return;
+    }
+
+    // Skip if we already attempted decryption for this message
+    const messageKey = `${match._id}-${lastMsg.createdAt}`;
+    if (decryptAttemptedRef.current === messageKey) {
+      return;
+    }
+    decryptAttemptedRef.current = messageKey;
+
+    const decryptPreview = async () => {
+      try {
+        // Get our private key from IndexedDB
+        const keys = await getKeys(user.id);
+        if (!keys?.privateKey) {
+          console.warn("[ChatListCard] No private key found");
+          return;
+        }
+
+        // Derive shared secret
+        const sharedSecret = await getSharedSecret(
+          match.currentUserId,
+          match.otherUser!._id,
+          keys.privateKey,
+          match.otherUser!.publicKey!
+        );
+
+        // Decrypt the message
+        const plaintext = await decryptMessage(
+          lastMsg.encryptedContent!,
+          lastMsg.nonce!,
+          sharedSecret
+        );
+
+        if (plaintext) {
+          // Truncate for preview
+          const preview = plaintext.length > 50 ? plaintext.slice(0, 50) + "..." : plaintext;
+          setDecryptedPreview(preview);
+        }
+      } catch (error) {
+        console.error("[ChatListCard] Failed to decrypt preview:", error);
+      }
+    };
+
+    decryptPreview();
+  // Use primitive values as dependencies to avoid unnecessary effect runs
+  // when object references change but values don't
+  }, [
+    match._id,
+    match.currentUserId,
+    match.lastMessage?.createdAt,
+    match.lastMessage?.isEncrypted,
+    match.lastMessage?.encryptedContent,
+    match.lastMessage?.nonce,
+    match.otherUser?._id,
+    match.otherUser?.publicKey,
+    user?.id,
+  ]);
 
   const handleCutConnection = async () => {
     try {
@@ -97,7 +176,21 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
                   {match.lastMessage.isFromMe && (
                     <span className="text-muted-foreground/70">You: </span>
                   )}
-                  {match.lastMessage.content}
+                  {match.lastMessage.isEncrypted ? (
+                    decryptedPreview ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Lock className="h-3 w-3 inline flex-shrink-0" />
+                        {decryptedPreview}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-muted-foreground/70">
+                        <Lock className="h-3 w-3 inline flex-shrink-0" />
+                        <span className="italic">Encrypted message</span>
+                      </span>
+                    )
+                  ) : (
+                    match.lastMessage.content
+                  )}
                 </>
               ) : (
                 <span className="italic">Start chatting!</span>

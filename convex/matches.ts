@@ -74,6 +74,10 @@ export const list = query({
                 content: lastMessage.content.slice(0, 50) + (lastMessage.content.length > 50 ? "..." : ""),
                 createdAt: lastMessage.createdAt,
                 isFromMe: lastMessage.senderId === user._id,
+                // E2EE fields for client-side decryption
+                isEncrypted: lastMessage.isEncrypted ?? false,
+                encryptedContent: lastMessage.encryptedContent,
+                nonce: lastMessage.nonce,
               }
             : null,
           otherUser: otherUser
@@ -84,8 +88,12 @@ export const list = query({
                 gender: otherUser.gender,
                 bio: otherUser.bio,
                 photos: otherUser.photos,
+                // Include public key for E2EE decryption
+                publicKey: otherUser.publicKey,
               }
             : null,
+          // Current user ID for shared secret derivation
+          currentUserId: user._id,
         };
       })
     );

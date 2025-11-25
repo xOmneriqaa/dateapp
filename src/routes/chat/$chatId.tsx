@@ -488,7 +488,8 @@ function ChatPage() {
         }
         profileRevealedAt={matchedAt ?? undefined}
         decrypt={decrypt}
-        isE2EEEnabled={isE2EEEnabled && encryptionReady}
+        isE2EEEnabled={isE2EEEnabled}
+        encryptionReady={encryptionReady}
         chatSessionId={chatId as Id<"chatSessions">}
       />
 

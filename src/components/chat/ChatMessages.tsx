@@ -25,6 +25,7 @@ interface ChatMessagesProps {
   // E2EE props
   decrypt?: (ciphertext: string, nonce: string) => Promise<string | null>;
   isE2EEEnabled?: boolean;
+  encryptionReady?: boolean; // Whether encryption keys are loaded
   chatSessionId?: Id<"chatSessions">;
 }
 
@@ -35,6 +36,7 @@ export function ChatMessages({
   profileRevealedAt,
   decrypt,
   isE2EEEnabled,
+  encryptionReady,
   chatSessionId,
 }: ChatMessagesProps) {
   // Find the index where the profile card should be inserted
@@ -98,6 +100,7 @@ export function ChatMessages({
                     message={message}
                     isMyMessage={isMyMessage}
                     decrypt={decrypt}
+                    encryptionReady={encryptionReady}
                     chatSessionId={chatSessionId}
                   />
                 )}
@@ -156,10 +159,11 @@ interface TextMessageProps {
   message: Message;
   isMyMessage: boolean;
   decrypt?: (ciphertext: string, nonce: string) => Promise<string | null>;
+  encryptionReady?: boolean;
   chatSessionId?: Id<"chatSessions">;
 }
 
-function TextMessage({ message, isMyMessage, decrypt, chatSessionId }: TextMessageProps) {
+function TextMessage({ message, isMyMessage, decrypt, encryptionReady, chatSessionId }: TextMessageProps) {
   const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
   const [decryptionError, setDecryptionError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -174,6 +178,12 @@ function TextMessage({ message, isMyMessage, decrypt, chatSessionId }: TextMessa
   useEffect(() => {
     // Skip if not encrypted or missing required data
     if (!message.isEncrypted || !message.encryptedContent || !message.nonce || !decrypt) {
+      return;
+    }
+
+    // IMPORTANT: Wait for encryption to be ready before attempting decryption
+    // This prevents showing "Unable to decrypt" while keys are still loading
+    if (!encryptionReady) {
       return;
     }
 
@@ -206,7 +216,7 @@ function TextMessage({ message, isMyMessage, decrypt, chatSessionId }: TextMessa
           setDecryptionError(true);
         }
       });
-  }, [message._id, message.isEncrypted, message.encryptedContent, message.nonce, decrypt]);
+  }, [message._id, message.isEncrypted, message.encryptedContent, message.nonce, decrypt, encryptionReady]);
 
   // Determine what to display
   let displayContent: string;
@@ -215,6 +225,9 @@ function TextMessage({ message, isMyMessage, decrypt, chatSessionId }: TextMessa
       displayContent = decryptedContent;
     } else if (decryptionError) {
       displayContent = "🔒 Unable to decrypt message";
+    } else if (!encryptionReady) {
+      // Keys still loading from IndexedDB
+      displayContent = "🔒 Loading encryption keys...";
     } else {
       displayContent = "🔒 Decrypting...";
     }
