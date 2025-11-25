@@ -39,9 +39,11 @@ function ChatPage() {
   const isTypingRef = useRef(false);
 
   // Convex queries - automatically reactive!
-  const chatData = useQuery(api.messages.list, {
-    chatSessionId: chatId as Id<"chatSessions">,
-  });
+  // Skip query until user is signed in to prevent "Unauthenticated" errors
+  const chatData = useQuery(
+    api.messages.list,
+    isSignedIn ? { chatSessionId: chatId as Id<"chatSessions"> } : "skip"
+  );
 
   const sendMessage = useMutation(api.messages.send);
   const leaveChat = useMutation(api.messages.leaveChat);

@@ -18,7 +18,8 @@ export const Route = createFileRoute('/profile')({
 function ProfilePage() {
   const navigate = useNavigate();
   const { isSignedIn, isLoaded } = useUser();
-  const profile = useQuery(api.profile.get);
+  // Skip query until user is signed in to prevent "Unauthenticated" errors
+  const profile = useQuery(api.profile.get, isSignedIn ? {} : "skip");
   const updateProfile = useMutation(api.profile.update);
   const generateUploadUrl = useMutation(api.profile.generateUploadUrl);
   const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });

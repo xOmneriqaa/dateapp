@@ -23,11 +23,12 @@ function Dashboard() {
   const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
 
   // Convex hooks - reactive queries automatically update
-  const queueStatus = useQuery(api.queue.status);
+  // Skip queries until user is signed in to prevent "Unauthenticated" errors
+  const queueStatus = useQuery(api.queue.status, isSignedIn ? {} : "skip");
   const joinQueue = useMutation(api.queue.join);
   const leaveQueue = useMutation(api.queue.leave);
-  const pendingRequests = useQuery(api.chatRequests.listPending);
-  const chats = useQuery(api.matches.list, {});
+  const pendingRequests = useQuery(api.chatRequests.listPending, isSignedIn ? {} : "skip");
+  const chats = useQuery(api.matches.list, isSignedIn ? {} : "skip");
   const isLoadingState = !isLoaded;
 
   const handleCancelSearch = async () => {

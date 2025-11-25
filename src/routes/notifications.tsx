@@ -15,7 +15,8 @@ export const Route = createFileRoute('/notifications')({
 function NotificationsPage() {
   const navigate = useNavigate();
   const { isSignedIn, isLoaded } = useUser();
-  const requests = useQuery(api.chatRequests.listPending);
+  // Skip query until user is signed in to prevent "Unauthenticated" errors
+  const requests = useQuery(api.chatRequests.listPending, isSignedIn ? {} : "skip");
   const acceptRequest = useMutation(api.chatRequests.accept);
   const declineRequest = useMutation(api.chatRequests.decline);
   const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });

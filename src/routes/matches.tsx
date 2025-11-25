@@ -16,7 +16,8 @@ export const Route = createFileRoute('/matches')({
 function ChatsPage() {
   const navigate = useNavigate();
   const { isSignedIn, isLoaded } = useUser();
-  const matches = useQuery(api.matches.list, {});
+  // Skip query until user is signed in to prevent "Unauthenticated" errors
+  const matches = useQuery(api.matches.list, isSignedIn ? {} : "skip");
   const cutConnection = useMutation(api.matches.cutConnection);
   const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
 
