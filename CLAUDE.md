@@ -44,7 +44,8 @@ Extended Phase:     E2EE encrypted (server stores ciphertext only)
 ### Key Files
 - `src/lib/encryption.ts` - Encryption/decryption utilities using libsodium
 - `src/lib/keyStorage.ts` - IndexedDB storage for private keys
-- `src/hooks/useEncryption.ts` - React hook for managing E2EE state
+- `src/hooks/useEncryption.ts` - React hook for managing E2EE state (includes key backup/restore detection)
+- `src/components/encryption/KeyBackupRestore.tsx` - UI component for key backup/restore
 - `convex/encryption.ts` - Convex mutations/queries for public key management
 
 ### Database Fields
@@ -59,12 +60,43 @@ E2EE includes a report system for admin moderation:
 - Reports are stored in `reports` table with plaintext for admin review
 - This allows moderation without breaking E2EE for normal messages
 
+### Cross-Device Key Sync
+Since private keys are stored locally in IndexedDB, users need to backup/restore keys to access encrypted messages on other devices:
+
+1. **Key Backup UI**: Available in Profile page → "Encryption Keys" section
+2. **New Device Detection**: When logging in on a new device without local keys, a banner appears in chat
+3. **Key Restore Options**:
+   - Import backup JSON file (recommended)
+   - Generate new keys (loses access to old messages)
+4. **Component**: `src/components/encryption/KeyBackupRestore.tsx` (supports full, compact, banner variants)
+
+### Backup Security (Signal-style)
+Following industry best practices from Signal:
+
+1. **Passphrase Protection**: Backup files are encrypted with user-provided passphrase
+2. **Key Derivation**: PBKDF2 with 100,000 iterations + SHA-256
+3. **Encryption**: AES-256-GCM for authenticated encryption
+4. **Versioning**: v1 = legacy unencrypted (backward compatible), v2 = encrypted (recommended)
+5. **Salt**: Random 16-byte salt per backup prevents rainbow table attacks
+
+```typescript
+// Backup file format (v2 - encrypted)
+{
+  "version": 2,
+  "encrypted": true,
+  "data": "<base64 ciphertext>",
+  "salt": "<base64 salt>",
+  "iv": "<base64 initialization vector>"
+}
+```
+
 ### Important Notes
 - **ALL messages are encrypted** (both speed dating and extended phases)
 - **Private keys are device-specific** - if user clears browser data, they can't decrypt old messages
-- **Key backup** feature available via `exportKeysAsBackup()` in keyStorage.ts
+- **Key backup** - users should backup keys from Profile page before switching devices
 - E2EE indicator shows green lock icon in chat when enabled
 - If encryption fails, message is NOT sent (prevents accidental plaintext leak)
+- Missing keys show helpful "Import your key backup" message in chat
 
 ## Key Technical Concepts
 

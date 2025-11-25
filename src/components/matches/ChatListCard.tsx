@@ -187,14 +187,14 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
             </p>
           </div>
 
-          {/* Cut connection button - appears on hover */}
+          {/* Cut connection button - always visible on mobile, hover on desktop */}
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setShowModal(true);
             }}
-            className="p-2 opacity-0 group-hover:opacity-100 transition-opacity
+            className="p-2 opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity
                        text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
             title="End chat"
           >

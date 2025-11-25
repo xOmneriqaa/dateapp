@@ -13,6 +13,7 @@ import { ChatInput } from '@/components/chat/ChatInput';
 import { DecisionOverlay } from '@/components/chat/DecisionOverlay';
 import { ChatEndedOverlay } from '@/components/chat/ChatEndedOverlay';
 import { InlineProfileCard } from '@/components/chat/InlineProfileCard';
+import { KeyBackupRestore } from '@/components/encryption/KeyBackupRestore';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useEncryption } from '@/hooks/useEncryption';
 import { MessageSchema } from '@/lib/validations';
@@ -62,7 +63,15 @@ function ChatPage() {
     decrypt,
     isE2EEEnabled,
     isReady: encryptionReady,
+    needsKeyRestore,
+    refreshAfterKeyRestore,
+    hasLocalKeys,
+    hasServerKey,
+    clerkId,
   } = useEncryption({ chatSessionId: chatId as Id<"chatSessions"> });
+
+  // Track if user dismissed the key restore banner for this session
+  const [dismissedKeyBanner, setDismissedKeyBanner] = useState(false);
 
   // State for cancel decision and timeout
   const [isCanceling, setIsCanceling] = useState(false);
@@ -459,6 +468,18 @@ function ChatPage() {
         onSkip={handleSkip}
       />
 
+      {/* Key restore banner - show when on new device with encrypted messages */}
+      {needsKeyRestore && !dismissedKeyBanner && clerkId && (
+        <KeyBackupRestore
+          clerkId={clerkId}
+          hasLocalKeys={hasLocalKeys}
+          serverHasKey={hasServerKey}
+          onKeysRestored={refreshAfterKeyRestore}
+          onClose={() => setDismissedKeyBanner(true)}
+          variant="banner"
+        />
+      )}
+
       {chatEnded && (
         <ChatEndedOverlay
           myDecision={myDecision}
@@ -489,6 +510,7 @@ function ChatPage() {
         decrypt={decrypt}
         isE2EEEnabled={isE2EEEnabled}
         encryptionReady={encryptionReady}
+        needsKeyRestore={needsKeyRestore}
         chatSessionId={chatId as Id<"chatSessions">}
       />
 

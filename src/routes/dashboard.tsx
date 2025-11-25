@@ -122,43 +122,48 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4">
-      <div className="absolute top-4 right-4 flex flex-wrap items-center gap-2 justify-end">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 pb-20 sm:pb-4">
+      {/* Navigation - Mobile: fixed bottom bar, Desktop: top right */}
+      <div className="fixed bottom-0 left-0 right-0 sm:absolute sm:bottom-auto sm:top-4 sm:left-auto sm:right-4
+                      bg-background/80 backdrop-blur sm:bg-transparent sm:backdrop-blur-none
+                      border-t sm:border-none border-border
+                      flex items-center justify-around sm:justify-end gap-1 sm:gap-2 p-2 sm:p-0 z-50">
         <Link to="/profile">
-          <Button variant="outline" size="sm" className="gap-2 shadow-soft-sm hover:shadow-soft">
-            <User className="h-4 w-4" />
-            Profile
+          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 sm:shadow-soft-sm sm:hover:shadow-soft sm:border sm:border-border">
+            <User className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="text-xs sm:text-sm">Profile</span>
           </Button>
         </Link>
         <Link to="/matches">
-          <Button variant="outline" size="sm" className="gap-2 relative shadow-soft-sm hover:shadow-soft">
-            <MessageCircle className="h-4 w-4" />
-            Chats
+          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 relative sm:shadow-soft-sm sm:hover:shadow-soft sm:border sm:border-border">
+            <MessageCircle className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="text-xs sm:text-sm">Chats</span>
             {chats && chats.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+              <span className="absolute top-0 right-1 sm:-top-1 sm:-right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-bold text-[10px] sm:text-xs">
                 {chats.length}
               </span>
             )}
           </Button>
         </Link>
         <Link to="/notifications">
-          <Button variant="outline" size="sm" className="gap-2 relative shadow-soft-sm hover:shadow-soft">
-            <Bell className="h-4 w-4" />
-            Notifications
+          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 relative sm:shadow-soft-sm sm:hover:shadow-soft sm:border sm:border-border">
+            <Bell className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="text-xs sm:text-sm hidden sm:inline">Notifications</span>
+            <span className="text-xs sm:hidden">Alerts</span>
             {pendingRequests && pendingRequests.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+              <span className="absolute top-0 right-1 sm:-top-1 sm:-right-1 bg-red-600 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-bold text-[10px] sm:text-xs">
                 {pendingRequests.length}
               </span>
             )}
           </Button>
         </Link>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={handleSignOut}
-          className="gap-2 shadow-soft-sm hover:shadow-soft"
+          className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 sm:shadow-soft-sm sm:hover:shadow-soft sm:border sm:border-border"
         >
-          Sign out
+          <span className="text-xs sm:text-sm">Sign out</span>
         </Button>
       </div>
 

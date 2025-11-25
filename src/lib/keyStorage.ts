@@ -150,49 +150,187 @@ export async function deleteKeys(clerkId: string): Promise<void> {
 }
 
 /**
- * Export keys as a downloadable backup
- * Users should keep this safe - if they lose it, they can't read old messages
+ * Derive an encryption key from a passphrase using PBKDF2
+ * This follows Signal's approach for key backup encryption
+ */
+async function deriveKeyFromPassphrase(
+  passphrase: string,
+  salt: Uint8Array
+): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+  const passphraseKey = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(passphrase),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: salt.buffer as ArrayBuffer,
+      iterations: 100000, // High iteration count for security
+      hash: "SHA-256",
+    },
+    passphraseKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+/**
+ * Encrypt data with AES-GCM using a derived key
+ */
+async function encryptWithPassphrase(
+  data: string,
+  passphrase: string
+): Promise<{ encrypted: string; salt: string; iv: string }> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKeyFromPassphrase(passphrase, salt);
+
+  const encoder = new TextEncoder();
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv },
+    key,
+    encoder.encode(data)
+  );
+
+  return {
+    encrypted: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
+    salt: btoa(String.fromCharCode(...salt)),
+    iv: btoa(String.fromCharCode(...iv)),
+  };
+}
+
+/**
+ * Decrypt data with AES-GCM using a derived key
+ */
+async function decryptWithPassphrase(
+  encrypted: string,
+  salt: string,
+  iv: string,
+  passphrase: string
+): Promise<string> {
+  const saltBytes = Uint8Array.from(atob(salt), (c) => c.charCodeAt(0));
+  const ivBytes = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0));
+  const encryptedBytes = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
+
+  const key = await deriveKeyFromPassphrase(passphrase, saltBytes);
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: ivBytes },
+    key,
+    encryptedBytes
+  );
+
+  const decoder = new TextDecoder();
+  return decoder.decode(decrypted);
+}
+
+/**
+ * Export keys as an encrypted backup
+ * Uses PBKDF2 + AES-GCM for passphrase-based encryption (Signal-style)
+ *
+ * @param clerkId - User's Clerk ID
+ * @param passphrase - User-provided passphrase for encryption (optional for legacy format)
+ * @returns Encrypted backup JSON string or null if no keys exist
  */
 export async function exportKeysAsBackup(
-  clerkId: string
+  clerkId: string,
+  passphrase?: string
 ): Promise<string | null> {
   const keys = await getKeys(clerkId);
   if (!keys) return null;
 
-  const backup = {
-    version: 1,
+  const keyData = {
     clerkId,
     publicKey: keys.publicKey,
     privateKey: keys.privateKey,
     exportedAt: new Date().toISOString(),
   };
 
-  return JSON.stringify(backup, null, 2);
+  // If passphrase provided, encrypt the backup (recommended)
+  if (passphrase && passphrase.length >= 6) {
+    const { encrypted, salt, iv } = await encryptWithPassphrase(
+      JSON.stringify(keyData),
+      passphrase
+    );
+
+    return JSON.stringify({
+      version: 2, // Version 2 = encrypted backup
+      encrypted: true,
+      data: encrypted,
+      salt,
+      iv,
+    }, null, 2);
+  }
+
+  // Legacy unencrypted format (version 1)
+  return JSON.stringify({
+    version: 1,
+    ...keyData,
+  }, null, 2);
 }
 
 /**
  * Import keys from a backup file
+ * Supports both encrypted (v2) and unencrypted (v1) backups
+ *
+ * @param clerkId - User's Clerk ID
+ * @param backupJson - The backup JSON string
+ * @param passphrase - Passphrase for encrypted backups (required for v2)
+ * @returns Object with public key or null on failure
  */
 export async function importKeysFromBackup(
   clerkId: string,
-  backupJson: string
+  backupJson: string,
+  passphrase?: string
 ): Promise<{ publicKey: string } | null> {
   try {
     const backup = JSON.parse(backupJson);
 
-    if (backup.version !== 1) {
-      throw new Error("Unsupported backup version");
+    // Version 2: Encrypted backup
+    if (backup.version === 2 && backup.encrypted) {
+      if (!passphrase) {
+        throw new Error("Passphrase required for encrypted backup");
+      }
+
+      try {
+        const decrypted = await decryptWithPassphrase(
+          backup.data,
+          backup.salt,
+          backup.iv,
+          passphrase
+        );
+        const keyData = JSON.parse(decrypted);
+
+        if (keyData.clerkId !== clerkId) {
+          throw new Error("Backup is for a different user");
+        }
+
+        await storeKeys(clerkId, keyData.publicKey, keyData.privateKey);
+        return { publicKey: keyData.publicKey };
+      } catch {
+        throw new Error("Invalid passphrase or corrupted backup");
+      }
     }
 
-    if (backup.clerkId !== clerkId) {
-      throw new Error("Backup is for a different user");
+    // Version 1: Unencrypted backup (legacy)
+    if (backup.version === 1) {
+      if (backup.clerkId !== clerkId) {
+        throw new Error("Backup is for a different user");
+      }
+
+      await storeKeys(clerkId, backup.publicKey, backup.privateKey);
+      return { publicKey: backup.publicKey };
     }
 
-    await storeKeys(clerkId, backup.publicKey, backup.privateKey);
-
-    return { publicKey: backup.publicKey };
+    throw new Error("Unsupported backup version");
   } catch (error) {
     console.error("Failed to import key backup:", error);
-    return null;
+    throw error; // Re-throw to let UI handle the error message
   }
 }

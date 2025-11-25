@@ -123,8 +123,8 @@ export function ChatInput({
       )}
 
       {/* Input Form */}
-      <form onSubmit={onSendMessage} className="px-6 py-4">
-        <div className="flex items-center gap-3">
+      <form onSubmit={onSendMessage} className="px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Image upload button - only in extended phase */}
           {isExtended && !previewUrl && (
             <>

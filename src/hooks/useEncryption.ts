@@ -25,6 +25,8 @@ import {
   storeKeys,
   hasKeys,
   deleteKeys,
+  exportKeysAsBackup,
+  importKeysFromBackup,
 } from "@/lib/keyStorage";
 
 interface UseEncryptionOptions {
@@ -231,6 +233,45 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
     });
   }, [user?.id]);
 
+  /**
+   * Check if user needs to restore keys from backup
+   * True when: server has a public key for this user, but no local keys exist
+   */
+  const needsKeyRestore = !state.hasLocalKeys && encryptionStatus?.publicKey != null;
+
+  /**
+   * Reinitialize encryption after keys are restored from backup
+   */
+  const refreshAfterKeyRestore = useCallback(async () => {
+    initializedRef.current = false;
+    await initializeEncryption();
+  }, [initializeEncryption]);
+
+  /**
+   * Export keys as backup JSON string
+   */
+  const exportKeys = useCallback(async (): Promise<string | null> => {
+    if (!user?.id) return null;
+    return exportKeysAsBackup(user.id);
+  }, [user?.id]);
+
+  /**
+   * Import keys from backup JSON string
+   */
+  const importKeys = useCallback(async (backupJson: string): Promise<boolean> => {
+    if (!user?.id) return false;
+
+    const result = await importKeysFromBackup(user.id, backupJson);
+    if (result) {
+      // Upload the restored public key to server
+      await updatePublicKey({ publicKey: result.publicKey });
+      // Reinitialize encryption state
+      await refreshAfterKeyRestore();
+      return true;
+    }
+    return false;
+  }, [user?.id, updatePublicKey, refreshAfterKeyRestore]);
+
   return {
     ...state,
     isE2EEEnabled, // Derived during render, not from state
@@ -239,5 +280,12 @@ export function useEncryption(options: UseEncryptionOptions = {}) {
     clearEncryption,
     // Expose for components that need to check other user's key status
     otherUserHasKey: chatEncryptionKeys?.otherUserPublicKey != null,
+    // Key backup/restore
+    needsKeyRestore,
+    refreshAfterKeyRestore,
+    exportKeys,
+    importKeys,
+    // User ID for key backup component
+    clerkId: user?.id,
   };
 }

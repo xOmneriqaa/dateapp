@@ -39,20 +39,20 @@ function ChatsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b-2 border-border px-6 py-6 bg-card shadow-soft-sm">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
+      <div className="border-b-2 border-border px-4 sm:px-6 py-4 sm:py-6 bg-card shadow-soft-sm">
+        <div className="max-w-2xl mx-auto flex items-center gap-3 sm:gap-4">
           <Link to="/dashboard">
             <Button variant="outline" size="sm" className="gap-2 rounded-xl transition-smooth">
               <ArrowLeft className="h-4 w-4" />
-              Back
+              <span className="hidden sm:inline">Back</span>
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Chats</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Chats</h1>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-2xl mx-auto px-6 py-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {matches === undefined ? (
           null
         ) : matches.length === 0 ? (

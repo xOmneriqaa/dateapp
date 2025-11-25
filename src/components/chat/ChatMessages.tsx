@@ -26,6 +26,7 @@ interface ChatMessagesProps {
   decrypt?: (ciphertext: string, nonce: string) => Promise<string | null>;
   isE2EEEnabled?: boolean;
   encryptionReady?: boolean; // Whether encryption keys are loaded
+  needsKeyRestore?: boolean; // Whether user needs to import keys on this device
   chatSessionId?: Id<"chatSessions">;
 }
 
@@ -37,6 +38,7 @@ export function ChatMessages({
   decrypt,
   isE2EEEnabled,
   encryptionReady,
+  needsKeyRestore,
   chatSessionId,
 }: ChatMessagesProps) {
   // Find the index where the profile card should be inserted
@@ -59,7 +61,7 @@ export function ChatMessages({
       resize="smooth"
       initial="smooth"
     >
-      <StickToBottom.Content className="px-6 py-8 space-y-4">
+      <StickToBottom.Content className="px-3 sm:px-6 py-4 sm:py-8 space-y-3 sm:space-y-4">
         {/* E2EE indicator banner */}
         {isE2EEEnabled && (
           <div className="flex items-center justify-center py-2 px-4 mx-auto w-fit
@@ -100,6 +102,7 @@ export function ChatMessages({
                     isMyMessage={isMyMessage}
                     decrypt={decrypt}
                     encryptionReady={encryptionReady}
+                    needsKeyRestore={needsKeyRestore}
                     chatSessionId={chatSessionId}
                   />
                 )}
@@ -159,10 +162,11 @@ interface TextMessageProps {
   isMyMessage: boolean;
   decrypt?: (ciphertext: string, nonce: string) => Promise<string | null>;
   encryptionReady?: boolean;
+  needsKeyRestore?: boolean;
   chatSessionId?: Id<"chatSessions">;
 }
 
-function TextMessage({ message, isMyMessage, decrypt, encryptionReady, chatSessionId }: TextMessageProps) {
+function TextMessage({ message, isMyMessage, decrypt, encryptionReady, needsKeyRestore, chatSessionId }: TextMessageProps) {
   const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
   const [decryptionError, setDecryptionError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -222,8 +226,11 @@ function TextMessage({ message, isMyMessage, decrypt, encryptionReady, chatSessi
   if (message.isEncrypted) {
     if (decryptedContent) {
       displayContent = decryptedContent;
-    } else if (decryptionError) {
-      displayContent = "🔒 Unable to decrypt message";
+    } else if (decryptionError || needsKeyRestore) {
+      // Show helpful message when keys are missing
+      displayContent = needsKeyRestore
+        ? "🔒 Import your key backup to read this message"
+        : "🔒 Unable to decrypt message";
     } else if (!encryptionReady) {
       // Keys still loading from IndexedDB
       displayContent = "🔒 Loading encryption keys...";
