@@ -1,6 +1,6 @@
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import { Id } from "../../../convex/_generated/dataModel";
-import { ChevronDown, Lock, Flag, MoreVertical } from "lucide-react";
+import { ChevronDown, Flag, MoreVertical } from "lucide-react";
 import { ReactNode, useMemo, useRef, useState, useEffect } from "react";
 import { ReportDialog } from "./ReportDialog";
 
@@ -62,10 +62,9 @@ export function ChatMessages({
       <StickToBottom.Content className="px-6 py-8 space-y-4">
         {/* E2EE indicator banner */}
         {isE2EEEnabled && (
-          <div className="flex items-center justify-center gap-2 py-2 px-4 mx-auto w-fit
+          <div className="flex items-center justify-center py-2 px-4 mx-auto w-fit
                           bg-green-500/10 text-green-700 dark:text-green-400
                           rounded-full text-xs font-medium border border-green-500/20">
-            <Lock className="h-3 w-3" />
             <span>Messages are end-to-end encrypted</span>
           </div>
         )}
@@ -250,10 +249,7 @@ function TextMessage({ message, isMyMessage, decrypt, encryptionReady, chatSessi
           style={{ minWidth: 'fit-content' }}
         >
           <p className="break-words whitespace-pre-wrap">{displayContent}</p>
-          <div className="flex items-center gap-1 mt-1">
-            {message.isEncrypted && !decryptionError && (
-              <Lock className="h-3 w-3 opacity-50 flex-shrink-0" />
-            )}
+          <div className="flex items-center mt-1">
             <span className="text-xs opacity-70 whitespace-nowrap">
               {new Date(message.createdAt).toLocaleTimeString([], {
                 hour: '2-digit',

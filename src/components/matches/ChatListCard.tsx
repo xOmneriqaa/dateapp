@@ -1,4 +1,4 @@
-import { User, Scissors, Loader2, Lock } from "lucide-react";
+import { User, Scissors, Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Id } from "../../../convex/_generated/dataModel";
 import { useState, useEffect, useRef } from "react";
@@ -177,17 +177,7 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
                     <span className="text-muted-foreground/70">You: </span>
                   )}
                   {match.lastMessage.isEncrypted ? (
-                    decryptedPreview ? (
-                      <span className="inline-flex items-center gap-1">
-                        <Lock className="h-3 w-3 inline flex-shrink-0" />
-                        {decryptedPreview}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-muted-foreground/70">
-                        <Lock className="h-3 w-3 inline flex-shrink-0" />
-                        <span className="italic">Encrypted message</span>
-                      </span>
-                    )
+                    decryptedPreview || <span className="italic text-muted-foreground/70">Encrypted message</span>
                   ) : (
                     match.lastMessage.content
                   )}
