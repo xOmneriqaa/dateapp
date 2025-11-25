@@ -27,7 +27,7 @@ function Dashboard() {
   const joinQueue = useMutation(api.queue.join);
   const leaveQueue = useMutation(api.queue.leave);
   const pendingRequests = useQuery(api.chatRequests.listPending);
-  const matches = useQuery(api.matches.list);
+  const matches = useQuery(api.matches.list, {});
   const isLoadingState = !isLoaded;
 
   // Track previous matches state to detect when a pending request becomes active

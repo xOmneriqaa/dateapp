@@ -17,7 +17,7 @@ export const Route = createFileRoute('/matches')({
 function MatchesPage() {
   const navigate = useNavigate();
   const { isSignedIn, isLoaded } = useUser();
-  const matches = useQuery(api.matches.list);
+  const matches = useQuery(api.matches.list, {});
   const sendRequest = useMutation(api.chatRequests.send);
   const deleteMatch = useMutation(api.matches.remove);
   const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });

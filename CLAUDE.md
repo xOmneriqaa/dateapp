@@ -12,10 +12,11 @@ This file provides guidance to Claude Code when working with this codebase.
 - **Auth**: Clerk (managed auth with JWT integration)
 - **Real-time**: Convex handles WebSockets automatically via `useQuery` hooks
 
-## Status Snapshot (Nov 23, 2025)
+## Status Snapshot (Nov 25, 2025)
 - `src/hooks/useRequireAuth.ts` now owns all protected-route redirects. Always call this hook right after `useUser()` so navigation happens inside an effect instead of during render.
 - `convex/queue.join` refuses to auto-create users; if a Clerk identity is missing in Convex, the frontend surfaces the `AccountNotFound` view and prompts the user to sign out.
 - All non-CLAUDE markdown files were intentionally cleared on Nov 23 to prevent stale guidance. Treat this document as the single source of truth.
+- Boilerplate routes from TanStack Start template removed (posts, users, deferred, redirect, _pathlessLayout).
 
 ## Key Technical Concepts
 
@@ -84,9 +85,9 @@ npx convex deploy  # Deploy backend
 ## Database (Convex)
 
 ### Schema (`convex/schema.ts`)
-- **Tables**: users, chatSessions, messages, matches
+- **Tables**: users, chatSessions, messages, matches, chatRequests
 - **No migrations**: Schema changes auto-applied by Convex
-- **Key indexes**: `by_clerk_id`, `by_queue`, `by_chat_and_time`
+- **Key indexes**: `by_clerk_id`, `by_queue`, `by_chat_and_time`, `by_to_user_and_status`
 - See `convex/schema.ts` for full schema
 
 ### Convex Function Types
@@ -158,15 +159,23 @@ if (queueStatus && !queueStatus.userExists) {
 - Privacy: Message auto-deletion on chat end
 - Performance: Query limiting, optimized re-renders, proper React patterns
 - User management: Username display priority, cascade deletion from Clerk → Convex, deleted user error handling
+- Profile editing with photo upload (`profile.tsx`, `convex/profile.ts`)
+- Match history with reconnection requests (`matches.tsx`, `convex/matches.ts`, `convex/chatRequests.ts`)
+- Notifications page for pending chat requests (`notifications.tsx`)
+- Skip feature: Both users can skip speed dating → direct to extended phase
+- Typing indicators with 5-second timeout
+- Auto-redirect on match found or chat request accepted
 
 ### 🚧 Todo
-- User profiles (editing, photo upload, Phase 2 visibility)
-- Typing indicators, read receipts
-- Match history, settings, report/block
+- Phase 2 profile visibility (`profile/$userId.tsx` placeholder exists)
+- Read receipts
+- Settings page
+- Report/block system
+- Typing indicator cleanup via scheduled functions
 
 ## Key Files Reference
-- **Backend**: `convex/schema.ts`, `convex/users.ts`, `convex/queue.ts`, `convex/messages.ts`, `convex/decisions.ts`, `convex/http.ts`
-- **Frontend**: `src/routes/__root.tsx`, `src/routes/dashboard.tsx`, `src/routes/chat/$chatId.tsx`
+- **Backend**: `convex/schema.ts`, `convex/users.ts`, `convex/queue.ts`, `convex/messages.ts`, `convex/decisions.ts`, `convex/http.ts`, `convex/matches.ts`, `convex/chatRequests.ts`, `convex/profile.ts`
+- **Frontend**: `src/routes/__root.tsx`, `src/routes/dashboard.tsx`, `src/routes/chat/$chatId.tsx`, `src/routes/matches.tsx`, `src/routes/notifications.tsx`, `src/routes/profile.tsx`
 - **Config**: `src/styles/app.css`, `vite.config.ts`, `convex/auth.config.js`
 
 ## Critical Lessons Learned

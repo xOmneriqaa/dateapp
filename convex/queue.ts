@@ -58,12 +58,12 @@ export const join = mutation({
       // Check if current user's preference matches other user's gender
       const userWantsOther =
         user.genderPreference === "both" ||
-        (user.gender && user.genderPreference === u.gender);
+        (u.gender && user.genderPreference === u.gender);
 
       // Check if other user's preference matches current user's gender
       const otherWantsUser =
         u.genderPreference === "both" ||
-        (u.gender && u.genderPreference === user.gender);
+        (user.gender && u.genderPreference === user.gender);
 
       return userWantsOther && otherWantsUser;
     });

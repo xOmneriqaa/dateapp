@@ -2,11 +2,13 @@ import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
 /**
- * Get current user's match history
+ * Get current user's match history (paginated)
  */
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
 
@@ -17,7 +19,8 @@ export const list = query({
 
     if (!user) throw new Error("User not found");
 
-    // Get all matches where user is involved
+    // Get matches where user is involved (limited for performance)
+    const limit = args.limit ?? 50;
     const matches = await ctx.db
       .query("matches")
       .filter((q) =>
@@ -27,7 +30,7 @@ export const list = query({
         )
       )
       .order("desc")
-      .collect();
+      .take(limit);
 
     // Get match details with other user's profile
     const matchesWithProfiles = await Promise.all(
