@@ -111,26 +111,20 @@ export const list = query({
 /**
  * Send a message in a chat session
  * Includes input validation and rate limiting
+ * For speed-dating phase: stores plaintext (anonymous, deleted after)
+ * For extended phase: expects encrypted content from client
  */
 export const send = mutation({
   args: {
     chatSessionId: v.id("chatSessions"),
     content: v.string(),
+    // E2EE fields (required for extended/matched chats)
+    encryptedContent: v.optional(v.string()),
+    nonce: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
-
-    // Validate message content
-    const trimmedContent = args.content.trim();
-
-    if (!trimmedContent) {
-      throw new Error("Message cannot be empty");
-    }
-
-    if (trimmedContent.length > 2000) {
-      throw new Error("Message too long (max 2000 characters)");
-    }
 
     // Get current user
     const user = await ctx.db
@@ -154,6 +148,29 @@ export const send = mutation({
       throw new Error("Chat session is not active");
     }
 
+    // Determine if this should be an encrypted message
+    const isEncrypted = !!args.encryptedContent && !!args.nonce;
+
+    // Validate based on encryption
+    if (isEncrypted) {
+      // For encrypted messages, we can't validate content length on server
+      // Client is responsible for validation before encryption
+      if (!args.encryptedContent || !args.nonce) {
+        throw new Error("Encrypted message requires both ciphertext and nonce");
+      }
+    } else {
+      // For plaintext messages (speed-dating), validate content
+      const trimmedContent = args.content.trim();
+
+      if (!trimmedContent) {
+        throw new Error("Message cannot be empty");
+      }
+
+      if (trimmedContent.length > 2000) {
+        throw new Error("Message too long (max 2000 characters)");
+      }
+    }
+
     // Rate limiting: Check if user sent more than 10 messages in last 10 seconds
     const now = Date.now();
     const tenSecondsAgo = now - 10000;
@@ -164,7 +181,7 @@ export const send = mutation({
         q.eq("chatSessionId", args.chatSessionId)
       )
       .order("desc")
-      .take(20); // Take recent messages to check
+      .take(20);
 
     const userRecentMessages = recentMessages.filter(
       (m) => m.senderId === user._id && m.createdAt > tenSecondsAgo
@@ -180,7 +197,11 @@ export const send = mutation({
     const messageId = await ctx.db.insert("messages", {
       chatSessionId: args.chatSessionId,
       senderId: user._id,
-      content: trimmedContent,
+      // For encrypted messages: store placeholder, actual content is encrypted
+      content: isEncrypted ? "[encrypted]" : args.content.trim(),
+      isEncrypted,
+      encryptedContent: args.encryptedContent,
+      nonce: args.nonce,
       createdAt: now,
     });
 

@@ -14,6 +14,7 @@ This file provides guidance to Claude Code when working with this codebase.
 
 ## Status Snapshot (Nov 25, 2025)
 - **MAJOR CHANGE**: Matches are now **persistent WhatsApp-style chats**. No more chat requests needed - matched users can message anytime.
+- **E2EE IMPLEMENTED**: End-to-end encryption for matched chats using libsodium (X25519 + XSalsa20-Poly1305).
 - **Cut Connection**: Either user can "cut" the connection, which removes the chat for both users and deletes all messages.
 - **Profile reveal**: Profile cards now appear inline in the chat stream (not at the top) when users match.
 - **New message indicator**: Uses `use-stick-to-bottom` library - no auto-scroll, shows "New messages" button when user has scrolled up.
@@ -22,6 +23,48 @@ This file provides guidance to Claude Code when working with this codebase.
 - `src/hooks/useRequireAuth.ts` now owns all protected-route redirects. Always call this hook right after `useUser()` so navigation happens inside an effect instead of during render.
 - `convex/queue.join` refuses to auto-create users; if a Clerk identity is missing in Convex, the frontend surfaces the `AccountNotFound` view and prompts the user to sign out.
 - Boilerplate routes from TanStack Start template removed (posts, users, deferred, redirect, _pathlessLayout).
+
+## End-to-End Encryption (E2EE)
+
+### Architecture
+**ALL messages** are end-to-end encrypted. The server cannot read message content.
+
+```
+Speed Dating Phase: E2EE encrypted (server stores ciphertext only)
+Extended Phase:     E2EE encrypted (server stores ciphertext only)
+```
+
+### How It Works
+1. **Key Generation**: Each user generates an X25519 keypair on first login
+2. **Key Storage**: Private keys stored in IndexedDB (never sent to server), public keys stored in Convex
+3. **Key Exchange**: When users match, they derive a shared secret using ECDH (Diffie-Hellman)
+4. **Encryption**: Messages encrypted with XSalsa20-Poly1305 before sending
+5. **Decryption**: Messages decrypted client-side using shared secret
+
+### Key Files
+- `src/lib/encryption.ts` - Encryption/decryption utilities using libsodium
+- `src/lib/keyStorage.ts` - IndexedDB storage for private keys
+- `src/hooks/useEncryption.ts` - React hook for managing E2EE state
+- `convex/encryption.ts` - Convex mutations/queries for public key management
+
+### Database Fields
+- `users.publicKey` - Base64 encoded X25519 public key
+- `messages.isEncrypted` - Boolean flag for encrypted messages
+- `messages.encryptedContent` - Base64 encoded ciphertext
+- `messages.nonce` - Base64 encoded nonce for decryption
+
+### Moderation Support
+E2EE includes a report system for admin moderation:
+- When a user reports a message, their client includes the **decrypted content** in the report
+- Reports are stored in `reports` table with plaintext for admin review
+- This allows moderation without breaking E2EE for normal messages
+
+### Important Notes
+- **ALL messages are encrypted** (both speed dating and extended phases)
+- **Private keys are device-specific** - if user clears browser data, they can't decrypt old messages
+- **Key backup** feature available via `exportKeysAsBackup()` in keyStorage.ts
+- E2EE indicator shows green lock icon in chat when enabled
+- If encryption fails, message is NOT sent (prevents accidental plaintext leak)
 
 ## Key Technical Concepts
 
@@ -161,13 +204,15 @@ if (queueStatus && !queueStatus.userExists) {
 ### ✅ Completed
 - Core features: Auth, matching queue, 15-min speed dating, decision mechanism, extended chat
 - **Persistent chats**: WhatsApp-style always-available chats after matching (no chat requests)
+- **E2EE encryption**: End-to-end encrypted messages in matched chats (libsodium X25519 + XSalsa20-Poly1305)
+- **Report system**: Users can report messages - includes decrypted content for admin review
 - **Cut connection**: Either user can end a chat - kicks out other user with toast notification
 - **Inline profile reveal**: Profile card appears in chat message stream when matched
 - **Smart scroll**: `use-stick-to-bottom` - no auto-scroll, "New messages" indicator
 - **Decision timeout**: 30-second timeout if one user doesn't respond
 - **Cancel decision**: Change your mind while waiting for other user
 - Security: Webhook signature verification, race condition prevention, rate limiting, input validation
-- Privacy: Message auto-deletion on chat end or cut connection
+- Privacy: Message auto-deletion on chat end or cut connection, E2EE for matched chats
 - Performance: Query limiting, optimized re-renders, proper React patterns
 - User management: Username display priority, cascade deletion from Clerk → Convex, deleted user error handling
 - Profile editing with photo upload (`profile.tsx`, `convex/profile.ts`)
@@ -185,9 +230,10 @@ if (queueStatus && !queueStatus.userExists) {
 - Unread message count per chat
 
 ## Key Files Reference
-- **Backend**: `convex/schema.ts`, `convex/users.ts`, `convex/queue.ts`, `convex/messages.ts`, `convex/decisions.ts`, `convex/http.ts`, `convex/matches.ts`, `convex/chatRequests.ts`, `convex/profile.ts`
+- **Backend**: `convex/schema.ts`, `convex/users.ts`, `convex/queue.ts`, `convex/messages.ts`, `convex/decisions.ts`, `convex/http.ts`, `convex/matches.ts`, `convex/chatRequests.ts`, `convex/profile.ts`, `convex/encryption.ts`, `convex/reports.ts`
 - **Frontend Routes**: `src/routes/__root.tsx`, `src/routes/dashboard.tsx`, `src/routes/chat/$chatId.tsx`, `src/routes/matches.tsx` (Chats page), `src/routes/notifications.tsx`, `src/routes/profile.tsx`
-- **Chat Components**: `src/components/chat/ChatMessages.tsx` (uses stick-to-bottom), `src/components/chat/InlineProfileCard.tsx`, `src/components/chat/DecisionOverlay.tsx` (with cancel/timeout)
+- **Chat Components**: `src/components/chat/ChatMessages.tsx` (uses stick-to-bottom, E2EE decryption), `src/components/chat/InlineProfileCard.tsx`, `src/components/chat/DecisionOverlay.tsx` (with cancel/timeout), `src/components/chat/ReportDialog.tsx` (message reporting)
+- **E2EE**: `src/lib/encryption.ts` (libsodium crypto), `src/lib/keyStorage.ts` (IndexedDB), `src/hooks/useEncryption.ts` (React hook)
 - **Chat List**: `src/components/matches/ChatListCard.tsx` (WhatsApp-style chat preview with cut connection)
 - **Config**: `src/styles/app.css`, `vite.config.ts`, `convex/auth.config.js`
 

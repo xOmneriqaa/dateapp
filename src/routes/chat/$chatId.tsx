@@ -5,7 +5,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock, LockOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatMessages } from '@/components/chat/ChatMessages';
@@ -14,6 +14,7 @@ import { DecisionOverlay } from '@/components/chat/DecisionOverlay';
 import { ChatEndedOverlay } from '@/components/chat/ChatEndedOverlay';
 import { InlineProfileCard } from '@/components/chat/InlineProfileCard';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { useEncryption } from '@/hooks/useEncryption';
 
 // Decision timeout: 30 seconds to respond after other person decides
 const DECISION_TIMEOUT_SECONDS = 30;
@@ -51,6 +52,14 @@ function ChatPage() {
   const generateUploadUrl = useMutation(api.messages.generateUploadUrl);
   const sendImage = useMutation(api.messages.sendImage);
   const canAccess = useRequireAuth({ isLoaded, isSignedIn, navigate });
+
+  // E2EE encryption hook
+  const {
+    encrypt,
+    decrypt,
+    isE2EEEnabled,
+    isReady: encryptionReady,
+  } = useEncryption({ chatSessionId: chatId as Id<"chatSessions"> });
 
   // State for cancel decision and timeout
   const [isCanceling, setIsCanceling] = useState(false);
@@ -221,6 +230,12 @@ function ChatPage() {
     e.preventDefault();
     if (!newMessage.trim() || isSending) return;
 
+    // Validate message length before encryption
+    if (newMessage.trim().length > 2000) {
+      toast.error('Message too long (max 2000 characters)');
+      return;
+    }
+
     setIsSending(true);
     try {
       // Clear typing indicator
@@ -229,10 +244,40 @@ function ChatPage() {
       }
       isTypingRef.current = false;
 
-      await sendMessage({
-        chatSessionId: chatId as Id<"chatSessions">,
-        content: newMessage,
+      // Encrypt ALL messages when E2EE is ready (both speed_dating and extended phases)
+      const shouldEncrypt = isE2EEEnabled && encryptionReady;
+
+      // Debug logging for encryption status
+      console.log('[E2EE] Encryption check:', {
+        phase: chatData?.chatSession?.phase,
+        isE2EEEnabled,
+        encryptionReady,
+        shouldEncrypt,
       });
+
+      if (shouldEncrypt) {
+        const encrypted = await encrypt(newMessage.trim());
+        if (encrypted) {
+          await sendMessage({
+            chatSessionId: chatId as Id<"chatSessions">,
+            content: "[encrypted]", // DO NOT store plaintext - only marker
+            encryptedContent: encrypted.ciphertext,
+            nonce: encrypted.nonce,
+          });
+        } else {
+          // Encryption failed - DO NOT send unencrypted, show error instead
+          console.error('Encryption failed');
+          toast.error('Failed to encrypt message. Please try again.');
+          return; // Don't send unencrypted message
+        }
+      } else {
+        // Speed dating phase or E2EE not ready - send plaintext
+        await sendMessage({
+          chatSessionId: chatId as Id<"chatSessions">,
+          content: newMessage.trim(),
+        });
+      }
+
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -442,6 +487,9 @@ function ChatPage() {
           ) : undefined
         }
         profileRevealedAt={matchedAt ?? undefined}
+        decrypt={decrypt}
+        isE2EEEnabled={isE2EEEnabled && encryptionReady}
+        chatSessionId={chatId as Id<"chatSessions">}
       />
 
       {/* Typing Indicator */}

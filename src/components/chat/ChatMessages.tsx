@@ -1,7 +1,8 @@
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import { Id } from "../../../convex/_generated/dataModel";
-import { ChevronDown } from "lucide-react";
-import { ReactNode, useMemo, useRef, useState } from "react";
+import { ChevronDown, Lock, Flag, MoreVertical } from "lucide-react";
+import { ReactNode, useMemo, useRef, useState, useEffect } from "react";
+import { ReportDialog } from "./ReportDialog";
 
 interface Message {
   _id: Id<"messages">;
@@ -10,16 +11,32 @@ interface Message {
   createdAt: number;
   messageType?: "text" | "image";
   imageUrl?: string | null;
+  // E2EE fields
+  isEncrypted?: boolean;
+  encryptedContent?: string;
+  nonce?: string;
 }
 
 interface ChatMessagesProps {
   messages: Message[];
   currentUserId: string;
-  profileRevealCard?: ReactNode; // Optional inline profile card for when profiles are revealed
-  profileRevealedAt?: number; // Timestamp when match was created (to position card correctly)
+  profileRevealCard?: ReactNode;
+  profileRevealedAt?: number;
+  // E2EE props
+  decrypt?: (ciphertext: string, nonce: string) => Promise<string | null>;
+  isE2EEEnabled?: boolean;
+  chatSessionId?: Id<"chatSessions">;
 }
 
-export function ChatMessages({ messages, currentUserId, profileRevealCard, profileRevealedAt }: ChatMessagesProps) {
+export function ChatMessages({
+  messages,
+  currentUserId,
+  profileRevealCard,
+  profileRevealedAt,
+  decrypt,
+  isE2EEEnabled,
+  chatSessionId,
+}: ChatMessagesProps) {
   // Find the index where the profile card should be inserted
   // It should appear after all messages that were sent before the match
   const profileCardIndex = useMemo(() => {
@@ -41,6 +58,16 @@ export function ChatMessages({ messages, currentUserId, profileRevealCard, profi
       initial="smooth"
     >
       <StickToBottom.Content className="px-6 py-8 space-y-4">
+        {/* E2EE indicator banner */}
+        {isE2EEEnabled && (
+          <div className="flex items-center justify-center gap-2 py-2 px-4 mx-auto w-fit
+                          bg-green-500/10 text-green-700 dark:text-green-400
+                          rounded-full text-xs font-medium border border-green-500/20">
+            <Lock className="h-3 w-3" />
+            <span>Messages are end-to-end encrypted</span>
+          </div>
+        )}
+
         {messages.length === 0 && !profileRevealCard && (
           <div className="text-center text-muted-foreground">
             <p>No messages yet. Say hi!</p>
@@ -67,21 +94,12 @@ export function ChatMessages({ messages, currentUserId, profileRevealCard, profi
                     createdAt={message.createdAt}
                   />
                 ) : (
-                  <div
-                    className={`max-w-[70%] px-5 py-4 rounded-2xl shadow-soft text-sm tracking-tight ${
-                      isMyMessage
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-card/80 text-foreground border border-border'
-                    }`}
-                  >
-                    <p className="break-words">{message.content}</p>
-                    <p className="text-xs mt-1 opacity-70">
-                      {new Date(message.createdAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                  </div>
+                  <TextMessage
+                    message={message}
+                    isMyMessage={isMyMessage}
+                    decrypt={decrypt}
+                    chatSessionId={chatSessionId}
+                  />
                 )}
               </div>
             </div>
@@ -131,6 +149,153 @@ function ScrollIndicator({ messageCount }: { messageCount: number }) {
         {hasNewMessages ? 'New messages' : 'Scroll to bottom'}
       </span>
     </button>
+  );
+}
+
+interface TextMessageProps {
+  message: Message;
+  isMyMessage: boolean;
+  decrypt?: (ciphertext: string, nonce: string) => Promise<string | null>;
+  chatSessionId?: Id<"chatSessions">;
+}
+
+function TextMessage({ message, isMyMessage, decrypt, chatSessionId }: TextMessageProps) {
+  const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
+  const [decryptionError, setDecryptionError] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+
+  // Track which message ID we've attempted to decrypt
+  // This properly handles component reuse for different messages
+  const lastDecryptedMessageIdRef = useRef<string | null>(null);
+
+  // Decrypt encrypted messages
+  // This effect IS appropriate - it's an async operation syncing with external crypto system
+  useEffect(() => {
+    // Skip if not encrypted or missing required data
+    if (!message.isEncrypted || !message.encryptedContent || !message.nonce || !decrypt) {
+      return;
+    }
+
+    // Skip if we already decrypted this exact message
+    if (lastDecryptedMessageIdRef.current === message._id) {
+      return;
+    }
+
+    // Reset state for new message (handles component reuse)
+    setDecryptedContent(null);
+    setDecryptionError(false);
+
+    // Mark this message as being processed
+    lastDecryptedMessageIdRef.current = message._id;
+
+    // Perform decryption
+    decrypt(message.encryptedContent, message.nonce)
+      .then((plaintext) => {
+        // Verify we're still trying to decrypt the same message (guard against race conditions)
+        if (lastDecryptedMessageIdRef.current === message._id) {
+          if (plaintext) {
+            setDecryptedContent(plaintext);
+          } else {
+            setDecryptionError(true);
+          }
+        }
+      })
+      .catch(() => {
+        if (lastDecryptedMessageIdRef.current === message._id) {
+          setDecryptionError(true);
+        }
+      });
+  }, [message._id, message.isEncrypted, message.encryptedContent, message.nonce, decrypt]);
+
+  // Determine what to display
+  let displayContent: string;
+  if (message.isEncrypted) {
+    if (decryptedContent) {
+      displayContent = decryptedContent;
+    } else if (decryptionError) {
+      displayContent = "🔒 Unable to decrypt message";
+    } else {
+      displayContent = "🔒 Decrypting...";
+    }
+  } else {
+    displayContent = message.content;
+  }
+
+  // Content to include in report (decrypted if available)
+  const reportableContent = message.isEncrypted ? (decryptedContent || "[encrypted]") : message.content;
+
+  return (
+    <>
+      <div className="relative group">
+        <div
+          className={`inline-block max-w-[70%] px-4 py-3 rounded-2xl shadow-soft text-base ${
+            isMyMessage
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card/80 text-foreground border border-border'
+          }`}
+          style={{ minWidth: 'fit-content' }}
+        >
+          <p className="break-words whitespace-pre-wrap">{displayContent}</p>
+          <div className="flex items-center gap-1 mt-1">
+            {message.isEncrypted && !decryptionError && (
+              <Lock className="h-3 w-3 opacity-50 flex-shrink-0" />
+            )}
+            <span className="text-xs opacity-70 whitespace-nowrap">
+              {new Date(message.createdAt).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          </div>
+        </div>
+
+        {/* Menu button - only show for messages from other user */}
+        {!isMyMessage && chatSessionId && (
+          <div className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-1.5 rounded-full hover:bg-muted transition-colors"
+            >
+              <MoreVertical className="h-4 w-4 text-muted-foreground" />
+            </button>
+
+            {/* Dropdown menu */}
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="absolute right-0 top-8 z-50 bg-background border-2 border-border rounded-lg shadow-lg py-1 min-w-[120px]">
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowReportDialog(true);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors"
+                  >
+                    <Flag className="h-4 w-4" />
+                    Report
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Report Dialog */}
+      {chatSessionId && (
+        <ReportDialog
+          isOpen={showReportDialog}
+          onClose={() => setShowReportDialog(false)}
+          messageId={message._id}
+          chatSessionId={chatSessionId}
+          messageContent={reportableContent}
+        />
+      )}
+    </>
   );
 }
 
