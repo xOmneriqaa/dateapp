@@ -34,18 +34,37 @@ Speed Dating Phase: E2EE encrypted (server stores ciphertext only)
 Extended Phase:     E2EE encrypted (server stores ciphertext only)
 ```
 
-### How It Works
-1. **Key Generation**: Each user generates an X25519 keypair on first login
-2. **Key Storage**: Private keys stored in IndexedDB (never sent to server), public keys stored in Convex
-3. **Key Exchange**: When users match, they derive a shared secret using ECDH (Diffie-Hellman)
-4. **Encryption**: Messages encrypted with XSalsa20-Poly1305 before sending
-5. **Decryption**: Messages decrypted client-side using shared secret
+### How It Works (Deterministic Keys)
+1. **Key Generation**: Keys are derived deterministically from `BLAKE2b(salt + userId + context)`
+2. **Cross-Device Sync**: Same user ID + same salt = same keys on all devices (no backup needed)
+3. **Key Storage**: Keys cached in IndexedDB for performance, public keys stored in Convex
+4. **Key Exchange**: When users match, they derive a shared secret using ECDH (X25519)
+5. **Encryption**: Messages encrypted with XSalsa20-Poly1305 before sending
+6. **Decryption**: Messages decrypted client-side using shared secret
+
+### Key Derivation (HKDF-style)
+```typescript
+// Input Key Material
+const ikm = ENCRYPTION_SALT + "|" + userId + "|" + "dateapp-x25519-keypair-v1";
+
+// Derive 32-byte seed using BLAKE2b
+const seed = crypto_generichash(32, ikm);
+
+// Generate deterministic X25519 keypair from seed
+const keyPair = crypto_box_seed_keypair(seed);
+```
+
+### Environment Variables
+```bash
+# Required in Vercel/Production
+VITE_ENCRYPTION_SALT=your-random-32-char-string-here
+```
+**IMPORTANT**: This salt is public (bundled in frontend) but adds security layer - attackers need both user ID AND salt.
 
 ### Key Files
-- `src/lib/encryption.ts` - Encryption/decryption utilities using libsodium
-- `src/lib/keyStorage.ts` - IndexedDB storage for private keys
-- `src/hooks/useEncryption.ts` - React hook for managing E2EE state (includes key backup/restore detection)
-- `src/components/encryption/KeyBackupRestore.tsx` - UI component for key backup/restore
+- `src/lib/encryption.ts` - Encryption/decryption + deterministic key generation
+- `src/lib/keyStorage.ts` - IndexedDB cache + `getOrCreateKeys()` helper
+- `src/hooks/useEncryption.ts` - React hook for managing E2EE state
 - `convex/encryption.ts` - Convex mutations/queries for public key management
 
 ### Database Fields
@@ -60,43 +79,23 @@ E2EE includes a report system for admin moderation:
 - Reports are stored in `reports` table with plaintext for admin review
 - This allows moderation without breaking E2EE for normal messages
 
-### Cross-Device Key Sync
-Since private keys are stored locally in IndexedDB, users need to backup/restore keys to access encrypted messages on other devices:
+### Security Tradeoffs
+| Attack Vector | Protected? |
+|---------------|------------|
+| Server reading messages | ✅ Yes |
+| Database breach | ✅ Yes |
+| Man-in-the-middle | ✅ Yes |
+| Targeted attack (knows userId + salt + algorithm) | ⚠️ Theoretically possible |
 
-1. **Key Backup UI**: Available in Profile page → "Encryption Keys" section
-2. **New Device Detection**: When logging in on a new device without local keys, a banner appears in chat
-3. **Key Restore Options**:
-   - Import backup JSON file (recommended)
-   - Generate new keys (loses access to old messages)
-4. **Component**: `src/components/encryption/KeyBackupRestore.tsx` (supports full, compact, banner variants)
-
-### Backup Security (Signal-style)
-Following industry best practices from Signal:
-
-1. **Passphrase Protection**: Backup files are encrypted with user-provided passphrase
-2. **Key Derivation**: PBKDF2 with 100,000 iterations + SHA-256
-3. **Encryption**: AES-256-GCM for authenticated encryption
-4. **Versioning**: v1 = legacy unencrypted (backward compatible), v2 = encrypted (recommended)
-5. **Salt**: Random 16-byte salt per backup prevents rainbow table attacks
-
-```typescript
-// Backup file format (v2 - encrypted)
-{
-  "version": 2,
-  "encrypted": true,
-  "data": "<base64 ciphertext>",
-  "salt": "<base64 salt>",
-  "iv": "<base64 initialization vector>"
-}
-```
+**Note**: This is "encryption" but not "true E2EE" like Signal/WhatsApp. True E2EE requires random keys + manual backup/restore. Our approach prioritizes cross-device UX over maximum security - appropriate for a dating app.
 
 ### Important Notes
 - **ALL messages are encrypted** (both speed dating and extended phases)
-- **Private keys are device-specific** - if user clears browser data, they can't decrypt old messages
-- **Key backup** - users should backup keys from Profile page before switching devices
+- **Automatic cross-device sync** - same account = same keys everywhere
+- **IndexedDB is a cache** - clearing it just regenerates the same keys
 - E2EE indicator shows green lock icon in chat when enabled
 - If encryption fails, message is NOT sent (prevents accidental plaintext leak)
-- Missing keys show helpful "Import your key backup" message in chat
+- Chat list previews also decrypt using `getOrCreateKeys()` helper
 
 ## Key Technical Concepts
 
@@ -341,10 +340,12 @@ Messages deleted on chat end in `convex/messages.ts` (leaveChat) and `convex/dec
 3. **Error boundaries**: Handle loading/error states gracefully in `chat/$chatId.tsx`
 
 ### Production Checklist
+- [ ] Set `VITE_ENCRYPTION_SALT` in Vercel (random 32+ char string for E2EE key derivation)
 - [ ] Set `CLERK_WEBHOOK_SECRET` in Convex Dashboard
 - [ ] Configure webhook URL: `https://YOUR-DEPLOYMENT.convex.site/clerk-webhook` (use `.site` not `.cloud`)
 - [ ] Enable webhook events: `user.created`, `user.updated`, `user.deleted`
 - [ ] Add `username` to Clerk JWT template: `{"username": "{{user.username}}"}`
 - [ ] Test: webhook verification, user creation, user deletion, username display
 - [ ] Test: race conditions, rate limiting, error states
+- [ ] Test: E2EE cross-device (same account, different browsers)
 - [ ] Verify deleted users cannot recreate themselves
