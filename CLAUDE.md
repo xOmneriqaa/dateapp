@@ -339,13 +339,10 @@ Messages deleted on chat end in `convex/messages.ts` (leaveChat) and `convex/dec
 2. **Timer optimization**: Only update state when value changes (reduces 60 re-renders/min → 1)
 3. **Error boundaries**: Handle loading/error states gracefully in `chat/$chatId.tsx`
 
-### Production Checklist
-- [ ] Set `VITE_ENCRYPTION_SALT` in Vercel (random 32+ char string for E2EE key derivation)
-- [ ] Set `CLERK_WEBHOOK_SECRET` in Convex Dashboard
-- [ ] Configure webhook URL: `https://YOUR-DEPLOYMENT.convex.site/clerk-webhook` (use `.site` not `.cloud`)
-- [ ] Enable webhook events: `user.created`, `user.updated`, `user.deleted`
-- [ ] Add `username` to Clerk JWT template: `{"username": "{{user.username}}"}`
-- [ ] Test: webhook verification, user creation, user deletion, username display
-- [ ] Test: race conditions, rate limiting, error states
-- [ ] Test: E2EE cross-device (same account, different browsers)
-- [ ] Verify deleted users cannot recreate themselves
+### Production Status ✅
+All production configurations completed:
+- `VITE_ENCRYPTION_SALT` set in Vercel
+- `CLERK_WEBHOOK_SECRET` set in Convex Dashboard
+- Webhook URL configured and working
+- Clerk JWT template includes `username`
+- E2EE cross-device sync working
