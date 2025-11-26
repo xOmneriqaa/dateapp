@@ -248,7 +248,7 @@ function TextMessage({ message, isMyMessage, decrypt, encryptionReady, chatSessi
           }`}
           style={{ minWidth: 'fit-content' }}
         >
-          <p className="break-words whitespace-pre-wrap">{displayContent}</p>
+          <p className="wrap-break-word whitespace-pre-wrap">{displayContent}</p>
           <div className="flex items-center mt-1">
             <span className="text-xs opacity-70 whitespace-nowrap">
               {new Date(message.createdAt).toLocaleTimeString([], {
