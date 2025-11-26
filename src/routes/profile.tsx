@@ -7,7 +7,6 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ProfilePhotoSection } from '@/components/profile/ProfilePhotoSection';
 import { ProfileFormFields } from '@/components/profile/ProfileFormFields';
-import { UserRoundPen } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { validateProfileForm, type Gender, type GenderPreference } from '@/lib/validations';
 
@@ -137,10 +136,6 @@ function ProfilePage() {
     <div className="min-h-screen bg-background px-4 py-6 sm:py-8 pb-24 sm:pb-8">
       <div className="max-w-lg mx-auto space-y-4 sm:space-y-6">
         <div className="text-center space-y-2 fade-in">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-border rounded-md text-xs text-muted-foreground">
-            <UserRoundPen className="h-4 w-4" />
-            Profile
-          </div>
           <h1 className="text-xl sm:text-2xl font-semibold">Edit Profile</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Tell us about yourself

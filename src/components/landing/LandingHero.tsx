@@ -1,16 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
 
 export function LandingHero() {
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="text-center px-4 sm:px-6 py-10 sm:py-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-border rounded-md text-xs text-muted-foreground mb-6 sm:mb-8">
-          <Sparkles className="h-3.5 w-3.5" />
-          Speed dating reimagined
-        </div>
-
         <div className="space-y-3 sm:space-y-4 mb-8 sm:mb-10">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
             Speed Date
