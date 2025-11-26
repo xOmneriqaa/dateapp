@@ -21,34 +21,34 @@ function ProfileViewPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border px-6 py-6 bg-card/70 backdrop-blur">
+      <div className="border-b border-border px-6 py-4 bg-card/50 backdrop-blur">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Link to="/matches">
-            <Button variant="outline" size="sm" className="gap-2 rounded-xl">
+            <Button variant="outline" size="sm" className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to Matches
+              Back to Chats
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Profile</h1>
+          <h1 className="text-lg font-semibold">Profile</h1>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="text-center py-16 bg-card/80 rounded-2xl shadow-soft-lg border border-border fade-in">
-          <div className="flex justify-center mb-10">
-            <span className="h-24 w-24 rounded-full border border-border flex items-center justify-center">
-              <UserRound className="h-12 w-12" />
+        <div className="text-center py-12 bg-card rounded-xl border border-border fade-in">
+          <div className="flex justify-center mb-8">
+            <span className="h-20 w-20 rounded-full border border-border flex items-center justify-center">
+              <UserRound className="h-10 w-10 text-muted-foreground" />
             </span>
           </div>
-          <h2 className="text-4xl font-bold mb-4">Profile View</h2>
-          <p className="text-lg text-muted-foreground mb-6">
+          <h2 className="text-2xl font-semibold mb-3">Profile View</h2>
+          <p className="text-sm text-muted-foreground mb-4">
             View matched user profiles (Coming Soon)
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             For now, you can see profiles in the chat when you match!
           </p>
-          <p className="text-xs text-muted-foreground/80 mt-6">
+          <p className="text-xs text-muted-foreground/70 mt-4">
             Selected profile id: {userId}
           </p>
         </div>

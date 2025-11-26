@@ -20,12 +20,12 @@ function Register() {
             elements: {
               rootBox: "w-full mx-auto",
               card: "shadow-none border-0 bg-transparent p-0 w-full",
-              headerTitle: "text-3xl font-bold text-center",
-              headerSubtitle: "text-muted-foreground text-center",
-              socialButtonsBlockButton: "rounded-xl border border-border shadow-soft-sm hover:shadow-soft transition-smooth w-full",
-              formButtonPrimary: "rounded-xl shadow-soft hover:shadow-soft-lg transition-smooth w-full",
-              formFieldInput: "rounded-xl border border-border w-full",
-              footerActionLink: "text-primary hover:text-primary/80",
+              headerTitle: "text-xl font-semibold text-center",
+              headerSubtitle: "text-muted-foreground text-center text-sm",
+              socialButtonsBlockButton: "rounded-lg border border-border hover:bg-muted transition-colors w-full",
+              formButtonPrimary: "rounded-lg transition-colors w-full",
+              formFieldInput: "rounded-lg border border-border w-full",
+              footerActionLink: "text-foreground hover:text-foreground/80",
             }
           }}
         />

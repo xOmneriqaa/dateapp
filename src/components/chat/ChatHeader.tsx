@@ -26,23 +26,23 @@ export function ChatHeader({
       {/* Mobile layout */}
       <div className="flex sm:hidden items-center justify-between">
         {/* Left: Title */}
-        <h1 className="text-lg font-bold tracking-tight">
-          {isExtended ? 'Matched Chat' : 'Speed Dating'}
+        <h1 className="text-base font-semibold tracking-tight">
+          {isExtended ? 'Chat' : 'Speed Dating'}
         </h1>
 
         {/* Right: Timer (speed dating) or Back button (extended) */}
         <div className="flex items-center gap-2">
           {isSpeedDating && timeRemaining && (
-            <div className="flex items-center gap-1.5 text-base font-mono">
+            <div className="flex items-center gap-1.5 text-sm font-mono">
               <Clock className="h-4 w-4" />
-              <span className="font-bold">{timeRemaining}</span>
+              <span className="font-semibold">{timeRemaining}</span>
             </div>
           )}
           <Button
             variant="ghost"
             size="sm"
             onClick={onLeave}
-            className="h-8 w-8 p-0"
+            className="h-10 w-10 p-0 min-w-[44px]"
           >
             {isExtended ? (
               <ArrowLeft className="h-5 w-5" />
@@ -61,7 +61,7 @@ export function ChatHeader({
             size="sm"
             onClick={onSkip}
             disabled={isSkipping}
-            className={`w-full gap-2 font-semibold transition-all ${
+            className={`w-full gap-2 font-medium transition-all min-h-[40px] ${
               skipCount === 1
                 ? 'bg-accent text-accent-foreground animate-pulse'
                 : skipCount === 2

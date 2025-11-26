@@ -76,9 +76,9 @@ export function MatchCard({ match, onSendRequest, onDelete }: MatchCardProps) {
 
   return (
     <>
-      <div className="border border-border shadow-soft-sm p-6 bg-card/80 hover:shadow-soft-lg transition-all rounded-2xl">
+      <div className="border border-border p-5 bg-card hover:bg-card/80 transition-colors rounded-xl">
         <div className="flex items-start gap-4">
-          <div className="w-20 h-20 rounded-full border border-border overflow-hidden bg-muted/50 flex-shrink-0">
+          <div className="w-16 h-16 rounded-full border border-border overflow-hidden bg-muted/50 flex-shrink-0">
             {match.otherUser?.photos && match.otherUser.photos.length > 0 ? (
               <img
                 src={match.otherUser.photos[0]}
@@ -93,24 +93,24 @@ export function MatchCard({ match, onSendRequest, onDelete }: MatchCardProps) {
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-bold mb-1">
+            <h3 className="text-base font-medium mb-0.5">
               {match.otherUser?.name || 'Anonymous'}
             </h3>
-            <p className="text-sm text-muted-foreground mb-2">
+            <p className="text-xs text-muted-foreground mb-1.5">
               {match.otherUser?.age ? `${match.otherUser.age} years old` : 'Age not set'}
               {match.otherUser?.gender &&
                 ` • ${match.otherUser.gender.charAt(0).toUpperCase() + match.otherUser.gender.slice(1)}`}
             </p>
             {match.otherUser?.bio ? (
-              <p className="text-sm line-clamp-2 mb-3">
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                 {match.otherUser.bio}
               </p>
             ) : (
-              <p className="text-sm text-muted-foreground italic mb-3">
+              <p className="text-xs text-muted-foreground/70 italic mb-2">
                 No bio yet
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground/70">
               Matched{' '}
               {new Date(match.matchedAt).toLocaleDateString([], {
                 month: 'short',
@@ -142,9 +142,9 @@ export function MatchCard({ match, onSendRequest, onDelete }: MatchCardProps) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-card border border-border shadow-soft-lg max-w-md w-full p-6 space-y-4 rounded-2xl">
+          <div className="bg-card border border-border shadow-modal max-w-sm w-full p-6 space-y-4 rounded-xl">
             <div>
-              <h3 className="text-2xl font-bold mb-2">Remove this match?</h3>
+              <h3 className="text-xl font-semibold mb-2">Remove this match?</h3>
               <p className="text-sm text-muted-foreground">
                 You will no longer be able to start chats with {match.otherUser?.name || 'this user'}.
               </p>

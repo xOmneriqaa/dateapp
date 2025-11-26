@@ -12,11 +12,11 @@ export function ProfilePhotoSection({ previewUrl, isUploading, onFileSelect }: P
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="space-y-4 text-center md:text-left">
-      <label className="text-xl font-semibold text-foreground block">Profile Photo</label>
-      <div className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-8">
-        <div className="relative group">
-          <div className="w-36 h-36 rounded-full border-4 border-border overflow-hidden bg-muted flex items-center justify-center shadow-soft transition-smooth group-hover:shadow-soft-lg mx-auto md:mx-0">
+    <div className="space-y-3">
+      <label className="text-sm font-medium text-foreground block">Profile Photo</label>
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full border border-border overflow-hidden bg-muted flex items-center justify-center">
             {previewUrl ? (
               <img
                 src={previewUrl}
@@ -24,21 +24,16 @@ export function ProfilePhotoSection({ previewUrl, isUploading, onFileSelect }: P
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="h-20 w-20 text-muted-foreground/50" />
+              <User className="h-10 w-10 text-muted-foreground" />
             )}
           </div>
           {isUploading && (
             <div className="absolute inset-0 bg-background/80 rounded-full flex items-center justify-center">
-              <div className="text-center">
-                <div className="inline-block animate-pulse">
-                  <Upload className="h-8 w-8 text-primary" />
-                </div>
-                <p className="text-sm font-medium mt-2">Uploading...</p>
-              </div>
+              <Upload className="h-5 w-5 text-muted-foreground animate-pulse" />
             </div>
           )}
         </div>
-        <div className="space-y-3 max-w-sm w-full">
+        <div className="space-y-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -48,17 +43,16 @@ export function ProfilePhotoSection({ previewUrl, isUploading, onFileSelect }: P
           />
           <Button
             variant="outline"
-            size="lg"
+            size="sm"
             onClick={() => fileInputRef.current?.click()}
-            className="gap-2 rounded-xl transition-smooth"
+            className="gap-2"
             disabled={isUploading}
           >
-            <Upload className="h-5 w-5" />
-            {previewUrl ? 'Change Photo' : 'Upload Photo'}
+            <Upload className="h-4 w-4" />
+            {previewUrl ? 'Change' : 'Upload'}
           </Button>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Max 5MB • JPG, PNG, or GIF<br />
-            Square photos work best
+          <p className="text-xs text-muted-foreground">
+            Max 5MB • JPG, PNG
           </p>
         </div>
       </div>

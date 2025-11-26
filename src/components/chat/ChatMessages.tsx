@@ -62,9 +62,9 @@ export function ChatMessages({
       <StickToBottom.Content className="px-3 sm:px-6 py-4 sm:py-8 space-y-3 sm:space-y-4">
         {/* E2EE indicator banner */}
         {isE2EEEnabled && (
-          <div className="flex items-center justify-center py-2 px-4 mx-auto w-fit
-                          bg-green-500/10 text-green-700 dark:text-green-400
-                          rounded-full text-xs font-medium border border-green-500/20">
+          <div className="flex items-center justify-center py-1.5 px-3 mx-auto w-fit
+                          text-muted-foreground
+                          rounded-md text-xs border border-border">
             <span>Messages are end-to-end encrypted</span>
           </div>
         )}
@@ -141,13 +141,13 @@ function ScrollIndicator({ messageCount }: { messageCount: number }) {
     <button
       onClick={() => scrollToBottom({ animation: 'smooth' })}
       className="absolute bottom-4 left-1/2 -translate-x-1/2
-                 flex items-center gap-2 px-4 py-2
-                 bg-primary text-primary-foreground
-                 rounded-full shadow-lg border-2 border-border
-                 hover:scale-105 transition-transform"
+                 flex items-center gap-2 px-3 py-1.5
+                 bg-secondary text-foreground
+                 rounded-md border border-border
+                 hover:bg-muted transition-colors"
     >
       <ChevronDown className="h-4 w-4" />
-      <span className="text-sm font-medium">
+      <span className="text-sm">
         {hasNewMessages ? 'New messages' : 'Scroll to bottom'}
       </span>
     </button>
@@ -241,10 +241,10 @@ function TextMessage({ message, isMyMessage, decrypt, encryptionReady, chatSessi
     <>
       <div className="relative group">
         <div
-          className={`inline-block max-w-[70%] px-4 py-3 rounded-2xl shadow-soft text-base ${
+          className={`inline-block max-w-[85%] sm:max-w-[70%] px-3 py-2 rounded-xl text-sm ${
             isMyMessage
               ? 'bg-primary text-primary-foreground'
-              : 'bg-card/80 text-foreground border border-border'
+              : 'bg-secondary text-foreground'
           }`}
           style={{ minWidth: 'fit-content' }}
         >
@@ -276,7 +276,7 @@ function TextMessage({ message, isMyMessage, decrypt, encryptionReady, chatSessi
                   className="fixed inset-0 z-40"
                   onClick={() => setShowMenu(false)}
                 />
-                <div className="absolute right-0 top-8 z-50 bg-background border-2 border-border rounded-lg shadow-lg py-1 min-w-[120px]">
+                <div className="absolute right-0 top-8 z-50 bg-card border border-border rounded-md py-1 min-w-[120px]">
                   <button
                     onClick={() => {
                       setShowMenu(false);
@@ -320,10 +320,10 @@ function ImageMessage({ imageUrl, isMyMessage, createdAt }: ImageMessageProps) {
   return (
     <>
       <div
-        className={`max-w-[70%] p-2 rounded-2xl shadow-soft ${
+        className={`max-w-[85%] sm:max-w-[70%] p-1.5 rounded-xl ${
           isMyMessage
             ? 'bg-primary'
-            : 'bg-card/80 border border-border'
+            : 'bg-secondary'
         }`}
       >
         <img

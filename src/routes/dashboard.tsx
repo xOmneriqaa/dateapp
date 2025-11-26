@@ -129,29 +129,29 @@ function Dashboard() {
                       border-t sm:border-none border-border
                       flex items-center justify-around sm:justify-end gap-1 sm:gap-2 p-2 sm:p-0 z-50">
         <Link to="/profile">
-          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 sm:shadow-soft-sm sm:hover:shadow-soft sm:border sm:border-border">
+          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 sm:border sm:border-border">
             <User className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="text-xs sm:text-sm">Profile</span>
           </Button>
         </Link>
         <Link to="/matches">
-          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 relative sm:shadow-soft-sm sm:hover:shadow-soft sm:border sm:border-border">
+          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 relative sm:border sm:border-border">
             <MessageCircle className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="text-xs sm:text-sm">Chats</span>
             {chats && chats.length > 0 && (
-              <span className="absolute top-0 right-1 sm:-top-1 sm:-right-1 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-bold text-[10px] sm:text-xs">
+              <span className="absolute top-0 right-1 sm:-top-1 sm:-right-1 bg-foreground text-background text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-medium text-[10px] sm:text-xs">
                 {chats.length}
               </span>
             )}
           </Button>
         </Link>
         <Link to="/notifications">
-          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 relative sm:shadow-soft-sm sm:hover:shadow-soft sm:border sm:border-border">
+          <Button variant="ghost" size="sm" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 relative sm:border sm:border-border">
             <Bell className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="text-xs sm:text-sm hidden sm:inline">Notifications</span>
             <span className="text-xs sm:hidden">Alerts</span>
             {pendingRequests && pendingRequests.length > 0 && (
-              <span className="absolute top-0 right-1 sm:-top-1 sm:-right-1 bg-red-600 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-bold text-[10px] sm:text-xs">
+              <span className="absolute top-0 right-1 sm:-top-1 sm:-right-1 bg-foreground text-background text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center font-medium text-[10px] sm:text-xs">
                 {pendingRequests.length}
               </span>
             )}
@@ -161,7 +161,7 @@ function Dashboard() {
           variant="ghost"
           size="sm"
           onClick={handleSignOut}
-          className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 sm:shadow-soft-sm sm:hover:shadow-soft sm:border sm:border-border"
+          className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2 px-3 sm:py-2 sm:px-3 sm:border sm:border-border"
         >
           <span className="text-xs sm:text-sm">Sign out</span>
         </Button>

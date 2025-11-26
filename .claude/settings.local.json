@@ -6,7 +6,9 @@
       "Bash(git commit:*)",
       "Bash(npm install:*)",
       "mcp__exa__get_code_context_exa",
-      "mcp__context7__resolve-library-id"
+      "mcp__context7__resolve-library-id",
+      "mcp__exa__web_search_exa",
+      "WebFetch(domain:linear.app)"
     ],
     "deny": [],
     "ask": []

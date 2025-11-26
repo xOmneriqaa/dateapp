@@ -142,7 +142,7 @@ export function ChatInput({
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={chatEnded || isUploading}
-                className="shrink-0"
+                className="shrink-0 h-10 w-10 min-w-[44px]"
                 title="Send image"
               >
                 <ImagePlus className="h-5 w-5" />
@@ -161,7 +161,7 @@ export function ChatInput({
           <Button
             type="submit"
             disabled={!newMessage.trim() || chatEnded || isSending || isUploading}
-            className="px-6 shrink-0"
+            className="px-4 sm:px-6 shrink-0 h-10 min-w-[44px]"
           >
             <Send className="h-5 w-5" />
           </Button>

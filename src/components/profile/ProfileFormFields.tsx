@@ -22,10 +22,10 @@ export function ProfileFormFields({
   setBio,
 }: ProfileFormFieldsProps) {
   return (
-    <div className="space-y-10">
+    <div className="space-y-5 sm:space-y-6">
       {/* Age */}
-      <div className="space-y-3">
-        <label className="text-xl font-semibold text-foreground">Age *</label>
+      <div className="space-y-2">
+        <label className="text-xs sm:text-sm font-medium text-foreground">Age *</label>
         <Input
           type="number"
           placeholder="Enter your age"
@@ -33,19 +33,18 @@ export function ProfileFormFields({
           onChange={(e) => setAge(e.target.value)}
           min="18"
           max="100"
-          className="h-14 text-lg rounded-xl border-2 border-border focus:border-primary transition-smooth"
         />
         {age && parseInt(age) < 18 && (
-          <p className="text-sm text-destructive font-medium">
+          <p className="text-xs text-destructive">
             You must be at least 18 years old
           </p>
         )}
       </div>
 
       {/* Gender */}
-      <div className="space-y-3">
-        <label className="text-xl font-semibold text-foreground">I am *</label>
-        <div className="grid grid-cols-3 gap-4">
+      <div className="space-y-2">
+        <label className="text-xs sm:text-sm font-medium text-foreground">I am *</label>
+        <div className="grid grid-cols-3 gap-2">
           {[
             { value: 'male', label: 'Male' },
             { value: 'female', label: 'Female' },
@@ -54,10 +53,10 @@ export function ProfileFormFields({
             <button
               key={option.value}
               onClick={() => setGender(option.value)}
-              className={`py-5 px-6 rounded-xl border-2 font-semibold transition-smooth shadow-soft-sm ${
+              className={`py-2.5 sm:py-2 px-2 sm:px-3 rounded-md border text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
                 gender === option.value
-                  ? 'bg-primary text-primary-foreground border-primary shadow-soft'
-                  : 'bg-background text-foreground border-border hover:bg-accent hover:border-accent-foreground/20 hover:shadow-soft'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-transparent text-foreground border-border hover:bg-muted'
               }`}
             >
               {option.label}
@@ -67,9 +66,9 @@ export function ProfileFormFields({
       </div>
 
       {/* Gender Preference */}
-      <div className="space-y-3">
-        <label className="text-xl font-semibold text-foreground">Interested in *</label>
-        <div className="grid grid-cols-3 gap-4">
+      <div className="space-y-2">
+        <label className="text-xs sm:text-sm font-medium text-foreground">Interested in *</label>
+        <div className="grid grid-cols-3 gap-2">
           {[
             { value: 'male', label: 'Men' },
             { value: 'female', label: 'Women' },
@@ -78,10 +77,10 @@ export function ProfileFormFields({
             <button
               key={option.value}
               onClick={() => setGenderPreference(option.value)}
-              className={`py-5 px-6 rounded-xl border-2 font-semibold transition-smooth shadow-soft-sm ${
+              className={`py-2.5 sm:py-2 px-2 sm:px-3 rounded-md border text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
                 genderPreference === option.value
-                  ? 'bg-primary text-primary-foreground border-primary shadow-soft'
-                  : 'bg-background text-foreground border-border hover:bg-accent hover:border-accent-foreground/20 hover:shadow-soft'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-transparent text-foreground border-border hover:bg-muted'
               }`}
             >
               {option.label}
@@ -91,10 +90,10 @@ export function ProfileFormFields({
       </div>
 
       {/* Bio */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <label className="text-xl font-semibold text-foreground">About Me</label>
-          <span className="text-sm text-muted-foreground font-medium">
+          <label className="text-xs sm:text-sm font-medium text-foreground">About Me</label>
+          <span className="text-[10px] sm:text-xs text-muted-foreground">
             {bio.length}/500
           </span>
         </div>
@@ -103,11 +102,11 @@ export function ProfileFormFields({
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           maxLength={500}
-          rows={8}
-          className="w-full px-5 py-4 border-2 border-border rounded-xl focus:outline-none focus:border-primary focus:shadow-soft transition-smooth resize-none text-base leading-relaxed"
+          rows={4}
+          className="w-full px-3 py-2 border border-border rounded-md bg-transparent text-sm focus:outline-none focus:border-muted-foreground/50 transition-colors resize-none"
         />
-        <p className="text-sm text-muted-foreground">
-          Share your interests, hobbies, or what you're looking for
+        <p className="text-[10px] sm:text-xs text-muted-foreground">
+          Share your interests or what you're looking for
         </p>
       </div>
     </div>

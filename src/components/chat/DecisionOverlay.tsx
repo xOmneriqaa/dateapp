@@ -19,53 +19,53 @@ export function DecisionOverlay({
   timeoutSeconds,
 }: DecisionOverlayProps) {
   return (
-    <div className="absolute inset-0 bg-background/80 backdrop-blur flex items-center justify-center z-50">
-      <div className="bg-card border border-border shadow-soft-lg p-8 max-w-md w-full mx-4 rounded-3xl">
-        <h2 className="text-3xl font-bold text-center mb-6">
-          Time's Up!
+    <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border shadow-modal p-5 sm:p-6 max-w-sm w-full rounded-xl">
+        <h2 className="text-lg sm:text-xl font-semibold text-center mb-3 sm:mb-4">
+          Time's Up
         </h2>
-        <p className="text-center text-lg mb-8">
+        <p className="text-center text-xs sm:text-sm text-muted-foreground mb-5 sm:mb-6">
           Do you want to continue chatting and see this person's profile?
         </p>
 
         {myDecision === null ? (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <Button
               onClick={() => onDecision(false)}
               variant="outline"
-              className="flex-1 gap-2 py-6 text-lg"
+              className="flex-1 gap-2 min-h-[48px] text-sm"
               disabled={isDeciding}
             >
-              <X className="h-6 w-6" />
+              <X className="h-4 w-4" />
               No Thanks
             </Button>
             <Button
               onClick={() => onDecision(true)}
-              className="flex-1 gap-2 py-6 text-lg"
+              className="flex-1 gap-2 min-h-[48px] text-sm"
               disabled={isDeciding}
             >
-              <Heart className="h-6 w-6" />
-              Yes, Continue
+              <Heart className="h-4 w-4" />
+              Continue
             </Button>
           </div>
         ) : (
           <div className="text-center">
-            <p className="text-xl font-bold mb-2">
-              {myDecision ? 'You said Yes!' : 'You said No'}
+            <p className="text-sm sm:text-base font-medium mb-1">
+              {myDecision ? 'You said Yes' : 'You said No'}
             </p>
-            <p className="text-muted-foreground">
-              Waiting for the other person to decide...
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Waiting for the other person...
             </p>
 
             {/* Timeout countdown */}
             {timeoutSeconds !== undefined && timeoutSeconds > 0 && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Timing out in {timeoutSeconds}s if no response
+              <p className="text-xs text-muted-foreground mt-2">
+                Timing out in {timeoutSeconds}s
               </p>
             )}
 
-            <div className="mt-6">
-              <div className="animate-pulse text-4xl">⏳</div>
+            <div className="mt-4">
+              <div className="animate-pulse text-2xl">⏳</div>
             </div>
 
             {/* Cancel/change decision button - only show if user said Yes */}
@@ -74,7 +74,7 @@ export function DecisionOverlay({
                 onClick={onCancel}
                 variant="ghost"
                 size="sm"
-                className="mt-6 gap-2 text-muted-foreground hover:text-foreground"
+                className="mt-5 sm:mt-6 gap-2 text-muted-foreground hover:text-foreground min-h-[44px]"
                 disabled={isCanceling}
               >
                 <Undo2 className="h-4 w-4" />

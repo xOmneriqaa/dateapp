@@ -4,27 +4,27 @@ import { Sparkles } from 'lucide-react';
 
 export function LandingHero() {
   return (
-    <div className="w-full max-w-6xl mx-auto">
-      <div className="text-center px-6 py-20">
-        <div className="inline-flex items-center gap-3 px-5 py-2 border border-border rounded-full uppercase text-xs tracking-[0.3em] text-muted-foreground mb-10">
-          <Sparkles className="h-4 w-4" />
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="text-center px-4 sm:px-6 py-10 sm:py-16">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-border rounded-md text-xs text-muted-foreground mb-6 sm:mb-8">
+          <Sparkles className="h-3.5 w-3.5" />
           Speed dating reimagined
         </div>
 
-        <div className="space-y-8 mb-16">
-          <h1 className="text-8xl md:text-9xl font-bold tracking-tight text-foreground leading-none">
+        <div className="space-y-3 sm:space-y-4 mb-8 sm:mb-10">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
             Speed Date
           </h1>
-          <p className="text-2xl md:text-3xl text-muted-foreground font-light tracking-wide max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
             15 minutes. Random connections. Real conversations.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <Link to="/register" className="w-full sm:w-auto">
             <Button
               size="lg"
-              className="w-full sm:w-auto text-xl font-medium px-16 py-7 rounded-2xl shadow-soft-lg hover-lift transition-smooth"
+              className="w-full sm:w-auto px-6 min-h-[48px]"
             >
               Get Started
             </Button>
@@ -33,30 +33,30 @@ export function LandingHero() {
             <Button
               variant="outline"
               size="lg"
-              className="w-full sm:w-auto text-xl font-medium px-16 py-7 rounded-2xl shadow-soft hover-lift transition-smooth border-2 border-border"
+              className="w-full sm:w-auto px-6 min-h-[48px]"
             >
               Sign In
             </Button>
           </Link>
         </div>
 
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-foreground">Anonymous</h3>
-            <p className="text-sm text-muted-foreground">
-              No profiles until you both match
+        <div className="mt-10 sm:mt-16 grid grid-cols-3 gap-4 sm:gap-6 max-w-2xl mx-auto">
+          <div className="space-y-1">
+            <h3 className="text-xs sm:text-sm font-medium text-foreground">Anonymous</h3>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              No profiles until match
             </p>
           </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-foreground">Timed</h3>
-            <p className="text-sm text-muted-foreground">
-              15 minutes to see if there's chemistry
+          <div className="space-y-1">
+            <h3 className="text-xs sm:text-sm font-medium text-foreground">Timed</h3>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              15 min to find chemistry
             </p>
           </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-foreground">Real</h3>
-            <p className="text-sm text-muted-foreground">
-              Genuine conversations, no swiping
+          <div className="space-y-1">
+            <h3 className="text-xs sm:text-sm font-medium text-foreground">Real</h3>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Real talk, no swiping
             </p>
           </div>
         </div>

@@ -134,21 +134,21 @@ function ProfilePage() {
   const isValid = age && parseInt(age) >= 18 && gender && genderPreference;
 
   return (
-    <div className="min-h-screen bg-background px-4 py-16">
-      <div className="max-w-5xl mx-auto space-y-10">
-        <div className="text-center space-y-4 fade-in">
-          <div className="inline-flex items-center gap-3 px-5 py-2 border border-border rounded-full text-sm uppercase tracking-[0.3em] text-muted-foreground">
-            <UserRoundPen className="h-5 w-5" />
+    <div className="min-h-screen bg-background px-4 py-6 sm:py-8 pb-24 sm:pb-8">
+      <div className="max-w-lg mx-auto space-y-4 sm:space-y-6">
+        <div className="text-center space-y-2 fade-in">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-border rounded-md text-xs text-muted-foreground">
+            <UserRoundPen className="h-4 w-4" />
             Profile
           </div>
-          <h1 className="text-5xl font-bold">Edit Profile</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Tell us about yourself to help us find better matches
+          <h1 className="text-xl sm:text-2xl font-semibold">Edit Profile</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Tell us about yourself
           </p>
         </div>
 
         <div className="slide-up">
-          <div className="space-y-10 bg-card p-8 rounded-2xl shadow-soft-lg">
+          <div className="space-y-5 sm:space-y-6 bg-card p-4 sm:p-5 rounded-xl border border-border">
             <ProfilePhotoSection
               previewUrl={previewUrl}
               isUploading={isUploading}
@@ -166,20 +166,17 @@ function ProfilePage() {
               setBio={setBio}
             />
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-border">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
               <Button
                 onClick={handleSave}
                 disabled={!isValid || isSaving}
-                size="lg"
-                className="flex-1 py-7 text-lg rounded-2xl transition-smooth"
+                className="flex-1"
               >
                 {isSaving ? 'Saving...' : 'Save Profile'}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate({ to: '/dashboard' })}
-                size="lg"
-                className="px-12 py-7 text-lg rounded-2xl transition-smooth"
               >
                 Cancel
               </Button>

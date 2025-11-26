@@ -138,9 +138,9 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
   return (
     <>
       <Link to="/chat/$chatId" params={{ chatId: match.chatSessionId }}>
-        <div className="flex items-center gap-4 p-4 border border-border rounded-xl bg-card/80 hover:bg-card hover:shadow-soft transition-all cursor-pointer group">
+        <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-card hover:bg-muted/50 transition-colors cursor-pointer group active:bg-muted/70">
           {/* Profile photo */}
-          <div className="w-14 h-14 rounded-full border border-border overflow-hidden bg-muted/50 flex-shrink-0">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border border-border overflow-hidden bg-muted flex-shrink-0">
             {match.otherUser?.photos && match.otherUser.photos.length > 0 ? (
               <img
                 src={match.otherUser.photos[0]}
@@ -149,24 +149,24 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <User className="h-6 w-6 text-muted-foreground" />
+                <User className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
               </div>
             )}
           </div>
 
           {/* Chat info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="font-semibold truncate">
+            <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+              <h3 className="text-sm sm:text-base font-semibold truncate">
                 {match.otherUser?.name || 'Anonymous'}
               </h3>
-              <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
+              <span className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0 ml-2">
                 {formatTime(lastActivityTime)}
               </span>
             </div>
 
             {/* Last message preview */}
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
               {match.lastMessage ? (
                 <>
                   {match.lastMessage.isFromMe && (
@@ -191,8 +191,8 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
               e.stopPropagation();
               setShowModal(true);
             }}
-            className="p-2 opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity
-                       text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+            className="p-2.5 sm:p-2 opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity
+                       text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
             title="End chat"
           >
             <Scissors className="h-4 w-4" />
@@ -209,20 +209,20 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-card border border-border shadow-soft-lg max-w-md w-full p-6 space-y-4 rounded-2xl"
+            className="bg-card border border-border shadow-modal max-w-sm w-full p-4 sm:p-5 space-y-4 rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div>
-              <h3 className="text-2xl font-bold mb-2">End this chat?</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-base sm:text-lg font-semibold mb-1">End this chat?</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 This will permanently end your conversation with {match.otherUser?.name || 'this user'}.
-                All messages will be deleted and this chat will disappear for both of you.
+                All messages will be deleted.
               </p>
             </div>
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                className="flex-1"
+                className="flex-1 min-h-[44px]"
                 onClick={() => setShowModal(false)}
                 disabled={isCutting}
               >
@@ -230,7 +230,7 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
               </Button>
               <Button
                 variant="destructive"
-                className="flex-1"
+                className="flex-1 min-h-[44px]"
                 onClick={handleCutConnection}
                 disabled={isCutting}
               >

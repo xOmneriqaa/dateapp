@@ -1,35 +1,36 @@
 @import 'tailwindcss' source('../');
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300;400;500;600;700&display=swap');
+@import url('https://rsms.me/inter/inter.css');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Noir palette - default dark mode */
-  --background: hsl(240 12% 7%);          /* Deep charcoal */
-  --foreground: hsl(0 0% 96%);            /* Soft white */
-  --card: hsl(240 9% 12%);                /* Elevated panel */
-  --card-foreground: hsl(0 0% 96%);
-  --popover: hsl(240 9% 12%);
-  --popover-foreground: hsl(0 0% 96%);
-  --primary: hsl(0 0% 100%);              /* Pure white accents */
-  --primary-foreground: hsl(240 12% 7%);
-  --secondary: hsl(240 6% 18%);
-  --secondary-foreground: hsl(0 0% 96%);
-  --muted: hsl(240 6% 21%);
-  --muted-foreground: hsl(0 0% 70%);
-  --accent: hsl(260 12% 28%);
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 85% 60%);
+  /* Linear-inspired neutral palette */
+  --background: hsl(0 0% 4%);             /* #0a0a0a - True neutral black */
+  --foreground: hsl(0 0% 95%);            /* #f2f2f2 - Primary text */
+  --card: hsl(0 0% 8%);                   /* #141414 - Elevated surface */
+  --card-foreground: hsl(0 0% 95%);
+  --popover: hsl(0 0% 10%);               /* #1a1a1a - Popover background */
+  --popover-foreground: hsl(0 0% 95%);
+  --primary: hsl(0 0% 100%);              /* Pure white */
+  --primary-foreground: hsl(0 0% 4%);
+  --secondary: hsl(0 0% 12%);             /* #1f1f1f - Secondary surface */
+  --secondary-foreground: hsl(0 0% 95%);
+  --muted: hsl(0 0% 15%);                 /* #262626 - Muted elements */
+  --muted-foreground: hsl(0 0% 55%);      /* #8c8c8c - Secondary text */
+  --accent: hsl(0 0% 18%);                /* #2e2e2e - Neutral accent */
+  --accent-foreground: hsl(0 0% 95%);
+  --destructive: hsl(0 70% 50%);          /* Red for destructive actions */
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 8% 24%);
-  --input: hsl(240 8% 24%);
-  --ring: hsl(260 80% 70%);
-  --radius: 12px;
-  --chart-1: hsl(260 80% 70%);
-  --chart-2: hsl(220 70% 60%);
-  --chart-3: hsl(180 55% 55%);
-  --chart-4: hsl(340 65% 65%);
-  --chart-5: hsl(45 70% 65%);
+  --border: hsl(0 0% 16%);                /* #292929 - Subtle border */
+  --input: hsl(0 0% 16%);
+  --ring: hsl(0 0% 45%);                  /* Neutral gray focus ring */
+  --radius: 10px;
+  /* Neutral chart colors */
+  --chart-1: hsl(0 0% 70%);
+  --chart-2: hsl(0 0% 55%);
+  --chart-3: hsl(0 0% 40%);
+  --chart-4: hsl(0 0% 30%);
+  --chart-5: hsl(0 0% 20%);
 }
 
 .light {
@@ -112,8 +113,9 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Google Sans Flex', 'Outfit', system-ui, -apple-system, sans-serif;
-    letter-spacing: -0.01em;
+    font-family: 'Inter', 'Inter Variable', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.011em;
+    font-feature-settings: 'ss01' on, 'ss02' on, 'cv01' on, 'cv03' on;
   }
 
   .using-mouse * {
@@ -121,61 +123,61 @@
   }
 }
 
-/* Modern Grey-Tone Utilities */
+/* Linear-inspired Minimal Utilities */
 @layer utilities {
-  /* Soft layered shadows for depth */
+  /* Minimal shadows - only for modals/overlays */
   .shadow-soft {
-    box-shadow:
-      0 10px 30px hsl(240 60% 5% / 0.45),
-      0 2px 12px hsl(260 80% 70% / 0.08);
+    box-shadow: 0 0 0 1px hsl(0 0% 100% / 0.04);
   }
 
   .shadow-soft-sm {
-    box-shadow:
-      0 4px 12px hsl(240 60% 5% / 0.35),
-      0 1px 4px hsl(260 80% 70% / 0.05);
+    box-shadow: none;
   }
 
   .shadow-soft-lg {
-    box-shadow:
-      0 25px 65px hsl(240 60% 5% / 0.55),
-      0 10px 35px hsl(260 80% 70% / 0.12);
+    box-shadow: 0 16px 70px hsl(0 0% 0% / 0.5);
   }
 
-  /* Smooth micro-interactions */
+  /* Modal shadow - only use for overlays */
+  .shadow-modal {
+    box-shadow:
+      0 0 0 1px hsl(0 0% 100% / 0.06),
+      0 16px 70px hsl(0 0% 0% / 0.5);
+  }
+
+  /* Smooth transitions */
   .transition-smooth {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.15s ease;
   }
 
   .transition-smooth-slow {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
   }
 
-  /* Hover effects - subtle and refined */
+  /* Hover effects - subtle background change only */
   .hover-lift {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
   }
 
   .hover-lift:hover {
-    transform: translateY(-2px);
+    /* No transform, just color change handled by component */
   }
 
   .hover-scale {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.15s ease;
   }
 
   .hover-scale:hover {
-    transform: scale(1.02);
+    /* No scale, just background handled by component */
   }
 
-  /* Fade animations - NO loading states, just smooth reveals */
+  /* Fade animations */
   .fade-in {
-    animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeIn 0.2s ease;
   }
 
   .slide-up {
-    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideUp 0.25s ease;
   }
 
   @keyframes fadeIn {
@@ -190,7 +192,7 @@
   @keyframes slideUp {
     from {
       opacity: 0;
-      transform: translateY(16px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
@@ -198,83 +200,34 @@
     }
   }
 
-  /* Backwards compatibility - keep existing 3D shadows */
+  /* Legacy shadow classes - mapped to minimal */
   .shadow-3d {
-    box-shadow:
-      0 1px 1px hsl(0 0% 0% / 0.075),
-      0 2px 2px hsl(0 0% 0% / 0.075),
-      0 4px 4px hsl(0 0% 0% / 0.075),
-      0 8px 8px hsl(0 0% 0% / 0.075),
-      0 16px 16px hsl(0 0% 0% / 0.075);
+    box-shadow: 0 0 0 1px hsl(0 0% 100% / 0.04);
   }
 
   .shadow-3d-sm {
-    box-shadow:
-      0 1px 2px hsl(0 0% 0% / 0.1),
-      0 2px 4px hsl(0 0% 0% / 0.1),
-      0 4px 8px hsl(0 0% 0% / 0.1);
+    box-shadow: none;
   }
 
   .shadow-3d-lg {
-    box-shadow:
-      0 2px 4px hsl(0 0% 0% / 0.1),
-      0 4px 8px hsl(0 0% 0% / 0.1),
-      0 8px 16px hsl(0 0% 0% / 0.1),
-      0 16px 32px hsl(0 0% 0% / 0.1),
-      0 32px 64px hsl(0 0% 0% / 0.1);
+    box-shadow: 0 16px 70px hsl(0 0% 0% / 0.4);
   }
 
   .shadow-3d-inset {
-    box-shadow:
-      inset 0 2px 4px hsl(0 0% 0% / 0.15),
-      inset 0 4px 8px hsl(0 0% 0% / 0.1);
+    box-shadow: inset 0 1px 2px hsl(0 0% 0% / 0.1);
   }
 
   .btn-3d {
     position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.15s ease;
-  }
-
-  .btn-3d::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: inherit;
-    transform: translateZ(-4px);
-    border-radius: inherit;
+    transition: background-color 0.15s ease;
   }
 
   .btn-3d:active {
-    transform: translateY(2px);
+    /* No transform */
   }
 }
 
-/* Dark mode adjustments for shadows */
-.dark .shadow-3d {
-  box-shadow:
-    0 1px 1px hsl(0 0% 0% / 0.15),
-    0 2px 2px hsl(0 0% 0% / 0.15),
-    0 4px 4px hsl(0 0% 0% / 0.15),
-    0 8px 8px hsl(0 0% 0% / 0.15),
-    0 16px 16px hsl(0 0% 0% / 0.15);
-}
-
-.dark .shadow-3d-sm {
-  box-shadow:
-    0 1px 2px hsl(0 0% 0% / 0.2),
-    0 2px 4px hsl(0 0% 0% / 0.2),
-    0 4px 8px hsl(0 0% 0% / 0.2);
-}
-
-.dark .shadow-3d-lg {
-  box-shadow:
-    0 2px 4px hsl(0 0% 0% / 0.2),
-    0 4px 8px hsl(0 0% 0% / 0.2),
-    0 8px 16px hsl(0 0% 0% / 0.2),
-    0 16px 32px hsl(0 0% 0% / 0.2),
-    0 32px 64px hsl(0 0% 0% / 0.2);
-}
+/* Dark mode - already minimal, no adjustments needed */
 
 /* Animation delays for typing indicator */
 @layer utilities {
