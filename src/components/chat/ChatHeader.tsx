@@ -63,9 +63,9 @@ export function ChatHeader({
             disabled={isSkipping}
             className={`w-full gap-2 font-medium transition-all min-h-[40px] ${
               skipCount === 1
-                ? 'bg-accent text-accent-foreground animate-pulse'
+                ? 'bg-accent text-accent-foreground hover:bg-accent/80 animate-pulse'
                 : skipCount === 2
-                ? 'bg-primary text-primary-foreground'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                 : ''
             }`}
           >
@@ -108,9 +108,9 @@ export function ChatHeader({
               disabled={isSkipping}
               className={`gap-2 font-semibold transition-all ${
                 skipCount === 1
-                  ? 'bg-accent text-accent-foreground animate-pulse'
+                  ? 'bg-accent text-accent-foreground hover:bg-accent/80 animate-pulse'
                   : skipCount === 2
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                   : ''
               }`}
             >
