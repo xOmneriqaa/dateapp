@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { HeartHandshake } from "lucide-react";
 
 interface DashboardIdleProps {
   username?: string | null;
@@ -13,9 +12,11 @@ export function DashboardIdle({ username, firstName, isJoining, onFindMatch }: D
     <div className="flex w-full items-center justify-center px-4 py-12 sm:py-16 min-h-[70vh] sm:min-h-[80vh]">
       <div className="w-full max-w-2xl fade-in">
         <div className="mb-6 sm:mb-8 flex justify-center">
-          <span className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-border bg-card">
-            <HeartHandshake className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" />
-          </span>
+          <img
+            src="/icons/heart.svg"
+            alt="Ready to connect"
+            className="h-16 w-16 sm:h-20 sm:w-20"
+          />
         </div>
 
         <div className="space-y-3 sm:space-y-4 text-center max-w-xl mx-auto">

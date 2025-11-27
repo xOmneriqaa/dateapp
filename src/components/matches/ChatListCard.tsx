@@ -212,8 +212,11 @@ export function ChatListCard({ match, onCutConnection }: ChatListCardProps) {
             className="bg-card border border-border shadow-modal max-w-sm w-full p-4 sm:p-5 space-y-4 rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
+            <div className="flex justify-center mb-2">
+              <img src="/icons/disconnected.svg" alt="" className="h-14 w-14" />
+            </div>
             <div>
-              <h3 className="text-base sm:text-lg font-semibold mb-1">End this chat?</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-1 text-center">End this chat?</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 This will permanently end your conversation with {match.otherUser?.name || 'this user'}.
                 All messages will be deleted.

@@ -10,7 +10,9 @@ export function ChatEndedOverlay({ myDecision, onReturnToDashboard }: ChatEndedO
     <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border shadow-modal p-5 sm:p-6 max-w-sm w-full rounded-xl">
         <div className="text-center space-y-3 sm:space-y-4">
-          <div className="text-2xl sm:text-3xl">👋</div>
+          <div className="flex justify-center">
+            <img src="/icons/wave.svg" alt="Goodbye" className="h-14 w-14 sm:h-16 sm:w-16" />
+          </div>
           <h2 className="text-lg sm:text-xl font-semibold">Chat Ended</h2>
           <p className="text-xs sm:text-sm text-muted-foreground">
             {myDecision === false
