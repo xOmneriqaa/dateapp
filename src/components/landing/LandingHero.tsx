@@ -6,6 +6,9 @@ export function LandingHero() {
     <div className="w-full max-w-3xl mx-auto">
       <div className="text-center px-4 sm:px-6 py-10 sm:py-16">
         <div className="space-y-3 sm:space-y-4 mb-8 sm:mb-10">
+          <div className="flex justify-center mb-4">
+            <img src="/icons/heart-broken.svg" alt="" className="h-16 w-16 sm:h-20 sm:w-20" />
+          </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
             Speed Date
           </h1>
